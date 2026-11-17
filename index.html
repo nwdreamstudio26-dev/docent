@@ -161,7 +161,7 @@ function home(){
   app.innerHTML = `<p class="mut">디지털 도슨트</p><h1>${esc(EXHIBITION.title)}</h1>
   <p class="mut">${esc(EXHIBITION.place)}</p>
   <p>작품 옆 QR코드를 스캔하거나 아래 목록에서 작품을 선택하세요.</p>
-  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="num" style="${NUMC[i]}">${i+1}</span>${esc(s.name)}</b><span class="mut">${esc(s.artist)} · 작품 ${WORKS.filter(w=>w.s===i+1).length}점</span></a>`).join("")}
+  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="num" style="${NUMC[i]}">${i+1}</span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}
   <p class="mut noprint"><a href="#qr">QR코드 생성·인쇄 (운영자용)</a></p>`;
 }
 
