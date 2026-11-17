@@ -145,10 +145,10 @@ WORKS.forEach(w=>{ if(D[w.id]) w.desc = D[w.id]; });
 
 const app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let tab = "desc";
+let activeAudio = null;
 
 let aiTok = 0;
-function stopTTS(){ aiTok++; try{ speechSynthesis.cancel(); }catch(e){} }
+function stopTTS(){ if(activeAudio){activeAudio.pause();activeAudio=null;} aiTok++; try{ speechSynthesis.cancel(); }catch(e){} }
 
 const NUMC = [
   "background:linear-gradient(180deg,#469fe6,#274b9f);color:#fff;border-color:transparent",
@@ -161,85 +161,57 @@ function home(){
   app.innerHTML = `<p class="mut">디지털 도슨트</p><h1>${esc(EXHIBITION.title)}</h1>
   <p class="mut">${esc(EXHIBITION.place)}</p>
   <p>작품 옆 QR코드를 스캔하거나 아래 목록에서 작품을 선택하세요.</p>
-  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="num" style="${NUMC[i]}">${i+1}</span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}
-  <p class="mut noprint"><a href="#qr">QR코드 생성·인쇄 (운영자용)</a></p>`;
-}
-
-function aiPane(w,pane){
-  if(!("speechSynthesis" in window)){ pane.innerHTML = "<p class='mut'>이 기기는 음성 재생을 지원하지 않습니다.</p>"; return; }
-  const sents = ((w.title+". "+w.artist+" 작가의 작품입니다. "+w.desc).replace(/\s*\n+\s*/g," ").match(/[^.!?]+[.!?]*/g)||[]).map(s=>s.trim()).filter(Boolean);
-  pane.innerHTML = `<p class="mut">AI 음성 안내 (예시) · 문장을 누르면 그 부분부터 들려드립니다.</p>
-  <div class="desc" id="atx">${sents.map((s,j)=>`<span data-j="${j}">${esc(s)} </span>`).join("")}</div>
-  <div class="btns"><button class="pri" id="apl">▶ 재생</button><button id="apv">◀ 이전</button><button id="anx">다음 ▶</button><button id="ast">정지</button>
-  <select id="asp" aria-label="재생 속도"><option value="1">1.0x</option><option value="0.9">0.9x</option><option value="1.15">1.15x</option></select></div><p class="mut" id="avo"></p>`;
-  const sp = [...pane.querySelectorAll("#atx span")], $ = id => pane.querySelector("#"+id);
-  let idx = 0, playing = false;
-  const mark = () => sp.forEach((e,j)=>e.classList.toggle("hl", playing && j===idx));
-  const pick = () => { const vs = speechSynthesis.getVoices().filter(v=>/^ko/i.test(v.lang)); return vs.find(v=>/natural|neural|premium|enhanced|google|yuna|sun-?hi|heami/i.test(v.name)) || vs[0] || null; };
-  function speak(){
-    stopTTS(); const my = aiTok; playing = true; mark();
-    const u = new SpeechSynthesisUtterance(sents[idx]), v = pick();
-    if(v) u.voice = v; u.lang = "ko-KR"; u.rate = +$("asp").value;
-    $("avo").textContent = v ? "음성: "+v.name : "이 기기의 기본 한국어 음성";
-    u.onend = () => { if(my!==aiTok) return; if(idx<sents.length-1){ idx++; speak(); } else { playing=false; idx=0; mark(); } };
-    speechSynthesis.speak(u);
-  }
-  const go = j => { idx = Math.max(0,Math.min(sents.length-1,j)); if(playing) speak(); else mark(); };
-  $("apl").onclick = speak;
-  $("apv").onclick = () => go(idx-1);
-  $("anx").onclick = () => go(idx+1);
-  $("ast").onclick = () => { stopTTS(); playing=false; idx=0; mark(); };
-  sp.forEach(e=>e.onclick = () => { idx = +e.dataset.j; speak(); });
+  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="num" style="${NUMC[i]}">${i+1}</span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}`;
 }
 
 function work(w){
   const i = WORKS.indexOf(w);
   const prev = WORKS[i-1], next = WORKS[i+1];
   app.innerHTML = `<p><a href="#${STUDIOS[w.s-1].id}">← ${esc(STUDIOS[w.s-1].name)}</a></p>
-  <div class="hero" role="img" aria-label="작품 이미지 영역">작품 이미지</div>
   <h2>${esc(w.title)}</h2><p class="mut">${esc(w.artist)}${w.g?" · "+esc(w.g):""}</p>
-  <div class="tabs" role="tablist">
-    <button role="tab" data-t="desc" aria-selected="${tab==="desc"}">작품 설명</button>
-    <button role="tab" data-t="audio" aria-selected="${tab==="audio"}">음성 안내</button>
-  </div>
-  <div id="pane"></div>
+  <div class="btns"><button class="pri" id="play" aria-pressed="false">▶ 음성 재생</button></div>
+  <p class="mut" id="audio-status" role="status"></p>
+  <div class="desc">${esc(w.desc||"작품 설명을 준비 중입니다.")}</div>
   <div class="btns">${prev?`<a class="pbtn" href="#${prev.id}">← 이전 작품</a>`:""}${next?`<a class="pbtn" href="#${next.id}">다음 작품 →</a>`:""}</div>`;
-  const pane = document.getElementById("pane");
-  function draw(){
-    app.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected", b.dataset.t===tab));
-    if(tab==="desc"){ pane.innerHTML = `<div class="desc">${esc(w.desc||"작품 설명을 준비 중입니다.")}</div>`; return; }
-    if(w.audio){
-      pane.innerHTML = `<audio id="au" controls preload="none" src="${esc(w.audio)}"></audio>
-      <div class="btns"><button id="b-5">5초 뒤로</button><button id="f5">5초 앞으로</button>
-      <select id="sp" aria-label="재생 속도"><option value="1">1.0x</option><option value="1.25">1.25x</option><option value="1.5">1.5x</option><option value="0.8">0.8x</option></select></div>`;
-      const au = document.getElementById("au");
-      document.getElementById("b-5").onclick = ()=>au.currentTime=Math.max(0,au.currentTime-5);
-      document.getElementById("f5").onclick = ()=>au.currentTime+=5;
-      document.getElementById("sp").onchange = e=>au.playbackRate=+e.target.value;
-    } else {
-      if(w.ai){ aiPane(w,pane); return; }
-      pane.innerHTML = `<p class="mut">녹음 파일이 없어 작품 설명을 음성으로 읽어드립니다.</p>
-      <div class="btns"><button class="pri" id="play">▶ 재생</button><button id="pause">일시정지</button><button id="stop">정지</button>
-      <select id="sp" aria-label="재생 속도"><option value="1">1.0x</option><option value="1.2">1.2x</option><option value="0.85">0.85x</option></select></div>`;
-      let paused = false;
-      document.getElementById("play").onclick = ()=>{
-        stopTTS();
-        try{
-          const u = new SpeechSynthesisUtterance(w.title+". "+w.desc);
-          u.lang = "ko-KR"; u.rate = +document.getElementById("sp").value;
-          speechSynthesis.speak(u);
-        }catch(e){ pane.insertAdjacentHTML("beforeend","<p class='mut'>이 기기는 음성 재생을 지원하지 않습니다.</p>"); }
-      };
-      document.getElementById("pause").onclick = e=>{
-        try{ if(paused){speechSynthesis.resume();e.target.textContent="일시정지";}else{speechSynthesis.pause();e.target.textContent="이어듣기";} paused=!paused; }catch(err){}
-      };
-      document.getElementById("stop").onclick = stopTTS;
-    }
+  const button = document.getElementById("play");
+  const status = document.getElementById("audio-status");
+  let state = "idle";
+  const setState = value => {
+    state = value;
+    button.textContent = value === "playing" ? "Ⅱ 일시정지" : value === "paused" ? "▶ 이어듣기" : "▶ 음성 재생";
+    button.setAttribute("aria-pressed", value === "playing");
+  };
+  const fail = () => { setState("idle"); status.textContent = "음성을 재생하지 못했습니다. 다시 눌러 주세요."; };
+  let audio = null;
+  if(w.audio){
+    audio = new Audio(w.audio);
+    audio.onended = () => setState("idle");
+    audio.onerror = fail;
   }
-  app.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{stopTTS();tab=b.dataset.t;draw();});
-  draw();
+  button.onclick = async () => {
+    status.textContent = "";
+    if(audio){
+      if(state === "playing"){ audio.pause(); setState("paused"); return; }
+      activeAudio = audio;
+      try { await audio.play(); setState("playing"); } catch(e){ fail(); }
+      return;
+    }
+    if(!("speechSynthesis" in window)){ status.textContent = "이 기기는 음성 재생을 지원하지 않습니다."; return; }
+    if(state === "playing"){ speechSynthesis.pause(); setState("paused"); return; }
+    if(state === "paused"){ speechSynthesis.resume(); setState("playing"); return; }
+    stopTTS();
+    const token = aiTok;
+    const utterance = new SpeechSynthesisUtterance(w.title + ". " + w.artist + " 작가의 작품입니다. " + (w.desc||""));
+    const voices = speechSynthesis.getVoices().filter(v => /^ko/i.test(v.lang));
+    const voice = voices.find(v => /natural|neural|premium|enhanced|google|yuna|sun-?hi|heami/i.test(v.name)) || voices[0];
+    if(voice) utterance.voice = voice;
+    utterance.lang = "ko-KR";
+    utterance.onend = () => { if(token === aiTok) setState("idle"); };
+    utterance.onerror = () => { if(token === aiTok) fail(); };
+    setState("playing");
+    speechSynthesis.speak(utterance);
+  };
 }
-
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
   app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
