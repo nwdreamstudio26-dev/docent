@@ -214,9 +214,28 @@ function work(w){
 }
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
-  app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
+  app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p>${n===1?`<div class="btns"><button class="pri" id="studio-play" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p>`:""}<div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
   + WORKS.filter(w=>w.s===n).map(w=>{const h = w.g&&w.g!==g ? `<p class="mut">${esc(g=w.g)}</p>` : ""; return h+`<a class="card" href="#${w.id}"><b>${esc(w.title)}</b><span class="mut">${esc(w.artist)}</span></a>`;}).join("");
-}
+  if(n===1){
+    const audio = new Audio("play-nonplay.mp3");
+    audio.preload = "metadata";
+    const button = document.getElementById("studio-play");
+    const status = document.getElementById("studio-audio-status");
+    let started = false;
+    const update = playing => {
+      button.textContent = playing ? "Ⅱ 일시정지" : started ? "▶ 이어듣기" : "▶ 도슨트 음성 재생";
+      button.setAttribute("aria-pressed",playing);
+    };
+    audio.onended = () => { started=false; update(false); };
+    audio.onerror = () => { update(false); status.textContent="음성을 불러오지 못했습니다. 다시 시도해 주세요."; };
+    button.onclick = async () => {
+      status.textContent="";
+      if(!audio.paused){ audio.pause(); update(false); return; }
+      activeAudio=audio;
+      try{ await audio.play(); started=true; update(true); }
+      catch(e){ update(false); status.textContent="음성을 재생하지 못했습니다. 다시 눌러 주세요."; }
+    };
+  }}
 
 function qr(){
   let base = "";
