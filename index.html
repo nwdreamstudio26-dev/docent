@@ -20,7 +20,7 @@ h2{font-size:1.25rem;line-height:1.4;margin:.4rem 0}
 a{color:var(--ac)}
 .card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
 .card b{display:block;font-size:1.05rem}
-.studio-star{display:inline-block;color:#1f4fd8;font-size:1.35rem;line-height:1;vertical-align:-.06em;margin-right:10px}
+.studio-star{display:inline-block;width:32px;height:32px;vertical-align:middle;margin-right:10px;background-image:url("studio-stars.png");background-repeat:no-repeat;background-size:540px 540px;flex-shrink:0}
 .hero{height:180px;border-radius:14px;background:linear-gradient(135deg,var(--line),var(--card));display:flex;align-items:center;justify-content:center;color:var(--mut);margin:12px 0}
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:14px 0}
 .tabs button{flex:1;padding:10px;border:0;background:none;color:var(--mut);font:inherit;border-bottom:2px solid transparent}
@@ -162,7 +162,7 @@ function home(){
   app.innerHTML = `<p class="mut">디지털 도슨트</p><h1>${esc(EXHIBITION.title)}</h1>
   <p class="mut">${esc(EXHIBITION.place)}</p>
   <p>작품 옆 QR코드를 스캔하거나 아래 목록에서 작품을 선택하세요.</p>
-  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="studio-star" aria-hidden="true">★</span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}`;
+  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="studio-star" style="background-position:${["-217.5px -174px","-325px -181px","-332px -228.5px","-212px -228.5px"][i]}" aria-hidden="true"></span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}`;
 }
 
 function work(w){
