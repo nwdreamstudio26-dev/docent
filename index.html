@@ -86,9 +86,6 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
 }
 @media print{body::before,body::after{display:none}main{background:none}}
 .globe-surface{display:none}
-.full-poster{margin:24px auto 0}
-.full-poster img{display:block;width:min(100%,540px);width:min(100%,540px,calc((100svh - 80px) * .8007));height:auto;margin-inline:auto;border-radius:18px}
-body.home.poster-in-view::before,body.home.poster-in-view::after,body.home.poster-in-view .globe-surface{visibility:hidden}
 </style>
 </head>
 <body>
@@ -210,8 +207,7 @@ function home(){
   app.innerHTML = `<p class="mut">디지털 도슨트</p><h1>${esc(EXHIBITION.title)}</h1>
   <p class="mut">${esc(EXHIBITION.place)}</p>
   <p>작품 옆 QR코드를 스캔하거나 아래 목록에서 작품을 선택하세요.</p>
-  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="studio-star" style="background-position:${["-217.5px -174px","-325px -181px","-332px -228.5px","-212px -228.5px"][i]}" aria-hidden="true"></span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}
-  <figure class="full-poster"><img src="${posterTexture.src}" width="900" height="1124" alt="짠! 뒤죽박죽 세계, 뭘 봤지? 전시 포스터 전체"></figure>`;
+  ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="studio-star" style="background-position:${["-217.5px -174px","-325px -181px","-332px -228.5px","-212px -228.5px"][i]}" aria-hidden="true"></span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}`;
 }
 
 function work(w){
@@ -420,15 +416,12 @@ function drawScroll(now){
   const panelTop = isHome ? app.getBoundingClientRect().top + scroll - displayedScroll + 14 - safeTop : 0;
   document.body.style.setProperty("--b", (max > 40 ? scroll / max : 0).toFixed(3));
   if(isHome){
-    const poster = app.querySelector(".full-poster");
-    const introEnd = Math.max(0, max - (poster ? poster.offsetHeight + 24 : 0));
-    const distance = Math.max(1, Math.min(introEnd * .6, window.innerHeight * .55));
+    const distance = Math.max(1, Math.min(max * .6, window.innerHeight * .55));
     const progress = clampProgress(displayedScroll / distance);
-    const dock = clampProgress((displayedScroll - distance) / Math.max(1, introEnd - distance));
+    const dock = clampProgress((displayedScroll - distance) / Math.max(1, max - distance));
     document.body.style.setProperty("--poster-progress", progress.toFixed(4));
     document.body.style.setProperty("--globe-dock-progress", dock.toFixed(4));
     document.body.classList.toggle("globe-docking", dock > 0);
-    document.body.classList.toggle("poster-in-view", Boolean(poster && poster.getBoundingClientRect().top < window.innerHeight * .55));
     if(animate && dock > 0 && globeTexture) drawGlobe(dock);
     document.body.style.setProperty("--globe-surface-opacity", globeTexture ? clampProgress(dock * 10) : 0);
     document.body.style.setProperty("--globe-panel-top", Math.max(16, panelTop) + "px");
