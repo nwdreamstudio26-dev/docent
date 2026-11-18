@@ -63,8 +63,8 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
     --poster-width:min(100vw,80.07svh);
     --dock:var(--globe-dock-progress,0);
     --globe-size:calc(min(56vw,270px) * (1 - var(--dock)) + 72px * var(--dock));
-    translate:calc((50vw - 54px) * var(--dock)) 0;
-    position:fixed;inset:calc(env(safe-area-inset-top,0px) + 24px * var(--p) - 8px * var(--dock)) 0 auto;
+    translate:calc((min(50vw - 12px,320px) - 50px) * var(--dock)) 0;
+    position:fixed;inset:calc(env(safe-area-inset-top,0px) + 24px * var(--p) * (1 - var(--dock)) + var(--globe-panel-top,16px) * var(--dock)) 0 auto;
     margin-inline:auto;
     width:calc(var(--poster-width) * (1 - var(--p)) + var(--globe-size) * var(--p));
     height:calc(var(--poster-width) * 1.248889 * (1 - var(--p)) + var(--globe-size) * var(--p));
@@ -322,6 +322,9 @@ function upd(){
     const dock = Math.min(1, Math.max(0, (window.scrollY - distance) / Math.max(1, max - distance)));
     document.body.style.setProperty("--globe-dock-progress", dock.toFixed(3));
     document.body.classList.toggle("globe-docking", dock > 0);
+    const safeTop = parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0;
+    const panelTop = Math.max(16, app.getBoundingClientRect().top + 14 - safeTop);
+    document.body.style.setProperty("--globe-panel-top", `${panelTop}px`);
   }
 }
 window.addEventListener("scroll", upd, {passive:true});
