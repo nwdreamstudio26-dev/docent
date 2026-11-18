@@ -22,7 +22,8 @@ a{color:var(--ac)}
 .card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
 .card b{display:block;font-size:1.05rem}
 .card > .mut{display:block}
-body.home .card > .mut{margin-left:42px}
+body.home .card{position:relative;padding-left:58px}
+body.home .studio-star{position:absolute;left:16px;top:50%;transform:translateY(-50%);margin-right:0}
 .studio-star{display:inline-block;width:32px;height:32px;vertical-align:middle;margin-right:10px;background-image:url("studio-stars.png");background-repeat:no-repeat;background-size:540px 540px;flex-shrink:0}
 .hero{height:180px;border-radius:14px;background:linear-gradient(135deg,var(--line),var(--card));display:flex;align-items:center;justify-content:center;color:var(--mut);margin:12px 0}
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:14px 0}
@@ -31,7 +32,11 @@ body.home .card > .mut{margin-left:42px}
 .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
 .btns button,.btns select,.pbtn{padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;min-height:44px}
 .btns .pri{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:700}
-.btns :is(#play,#studio-play){background:#fbeb8b;color:#fff;border-color:#7b6528;text-shadow:0 1px 2px #382d0e;-webkit-text-stroke:.35px #382d0e}
+.btns :is(#play,#studio-play){background:var(--studio-color);color:#fff;border-color:#524a40;text-shadow:0 1px 2px #232d35;-webkit-text-stroke:.35px #232d35}
+[data-studio="1"]{--studio-color:#4898f4}
+[data-studio="2"]{--studio-color:#f66a70}
+[data-studio="3"]{--studio-color:#fbd648}
+[data-studio="4"]{--studio-color:#68c592}
 audio{width:100%;margin:8px 0}
 .desc{white-space:pre-line}.hl{background:color-mix(in srgb,var(--ac) 24%,transparent);border-radius:4px}#atx span{cursor:pointer}
 .qrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
@@ -179,7 +184,7 @@ function work(w){
   const prev = WORKS[i-1], next = WORKS[i+1];
   app.innerHTML = `<p><a href="#${STUDIOS[w.s-1].id}">← ${esc(STUDIOS[w.s-1].name)}</a></p>
   <h2>${esc(w.title)}</h2><p class="mut">${esc(w.artist)}${w.g?" · "+esc(w.g):""}</p>
-  <div class="btns"><button class="pri" id="play" aria-pressed="false">▶ 음성 재생</button></div>
+  <div class="btns"><button class="pri" id="play" data-studio="${w.s}" aria-pressed="false">▶ 음성 재생</button></div>
   <p class="mut" id="audio-status" role="status"></p>
   <div class="desc">${esc(w.desc||"작품 설명을 준비 중입니다.")}</div>
   <div class="btns">${prev?`<a class="pbtn" href="#${prev.id}">← 이전 작품</a>`:""}${next?`<a class="pbtn" href="#${next.id}">다음 작품 →</a>`:""}</div>`;
@@ -224,7 +229,7 @@ function work(w){
 }
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
-  app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns"><button class="pri" id="studio-play" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
+  app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns"><button class="pri" id="studio-play" data-studio="${n}" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
   + WORKS.filter(w=>w.s===n).map(w=>{const h = w.g&&w.g!==g ? `<p class="mut">${esc(g=w.g)}</p>` : ""; return h+`<a class="card" href="#${w.id}"><b>${esc(w.title)}</b><span class="mut">${esc(w.artist)}</span></a>`;}).join("");
   {
     const audio = new Audio(`docent-studio-${n}.mp3`);
