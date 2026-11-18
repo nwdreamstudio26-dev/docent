@@ -61,8 +61,10 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
     --p:var(--poster-progress,0);
     --poster-width:min(100vw,80.07vh);
     --poster-width:min(100vw,80.07svh);
-    --globe-size:min(56vw,270px);
-    position:fixed;inset:calc(env(safe-area-inset-top,0px) + 24px * var(--p)) 0 auto;
+    --dock:var(--globe-dock-progress,0);
+    --globe-size:calc(min(56vw,270px) * (1 - var(--dock)) + 72px * var(--dock));
+    translate:calc((50vw - 54px) * var(--dock)) 0;
+    position:fixed;inset:calc(env(safe-area-inset-top,0px) + 24px * var(--p) - 8px * var(--dock)) 0 auto;
     margin-inline:auto;
     width:calc(var(--poster-width) * (1 - var(--p)) + var(--globe-size) * var(--p));
     height:calc(var(--poster-width) * 1.248889 * (1 - var(--p)) + var(--globe-size) * var(--p));
@@ -312,9 +314,11 @@ function upd(){
   const p = max > 40 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
   document.body.style.setProperty("--b", p.toFixed(3));
   if(document.body.classList.contains("home")){
-    const distance = Math.max(1, Math.min(max, window.innerHeight * .55));
+    const distance = Math.max(1, Math.min(max * .6, window.innerHeight * .55));
     const progress = Math.min(1, Math.max(0, window.scrollY / distance));
     document.body.style.setProperty("--poster-progress", progress.toFixed(3));
+    const dock = Math.min(1, Math.max(0, (window.scrollY - distance) / Math.max(1, max - distance)));
+    document.body.style.setProperty("--globe-dock-progress", dock.toFixed(3));
   }
 }
 window.addEventListener("scroll", upd, {passive:true});
