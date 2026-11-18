@@ -21,7 +21,8 @@ h2{font-size:1.25rem;line-height:1.4;margin:.4rem 0}
 a{color:var(--ac)}
 .card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
 .card b{display:block;font-size:1.05rem}
-.card > .mut{display:block;margin-left:42px}
+.card > .mut{display:block}
+body.home .card > .mut{margin-left:42px}
 .studio-star{display:inline-block;width:32px;height:32px;vertical-align:middle;margin-right:10px;background-image:url("studio-stars.png");background-repeat:no-repeat;background-size:540px 540px;flex-shrink:0}
 .hero{height:180px;border-radius:14px;background:linear-gradient(135deg,var(--line),var(--card));display:flex;align-items:center;justify-content:center;color:var(--mut);margin:12px 0}
 .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:14px 0}
@@ -30,6 +31,7 @@ a{color:var(--ac)}
 .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
 .btns button,.btns select,.pbtn{padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;min-height:44px}
 .btns .pri{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:700}
+.btns :is(#play,#studio-play){background:#fbeb8b;color:#fff;border-color:#7b6528;text-shadow:0 1px 2px #382d0e;-webkit-text-stroke:.35px #382d0e}
 audio{width:100%;margin:8px 0}
 .desc{white-space:pre-line}.hl{background:color-mix(in srgb,var(--ac) 24%,transparent);border-radius:4px}#atx span{cursor:pointer}
 .qrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
