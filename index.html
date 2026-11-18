@@ -57,12 +57,11 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
 }
 @media screen and (prefers-reduced-motion:no-preference){
   body.home{isolation:isolate;background-color:#fbeb8b}
-  body.home::before,body.home::after{
+  body.home::before,body.home::after,body.home .globe-surface{
     --p:var(--poster-progress,0);
     --poster-width:min(100vw,80.07vh);
     --poster-width:min(100vw,80.07svh);
     --dock:var(--globe-dock-progress,0);
-    rotate:calc(1turn * var(--dock));
     --globe-size:calc(min(56vw,270px) * (1 - var(--dock)) + 72px * var(--dock));
     translate:calc((min(50vw - 12px,320px) - 50px) * var(--dock)) 0;
     position:fixed;inset:calc(env(safe-area-inset-top,0px) + 24px * var(--p) * (1 - var(--dock)) + var(--globe-panel-top,16px) * var(--dock)) 0 auto;
@@ -73,8 +72,9 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
     pointer-events:none;
   }
   body.home::before{background-color:transparent;background-position:center;background-size:cover;filter:none;transform:none;will-change:auto}
-  body.home.globe-docking::before{z-index:2}
-  body.home.globe-docking::after{z-index:3}
+  body.home.globe-docking::before{z-index:2;opacity:calc(1 - var(--globe-surface-opacity,0))}
+  body.home.globe-docking::after{z-index:3;opacity:calc(1 - var(--globe-surface-opacity,0))}
+  body.home.globe-docking .globe-surface{display:block;z-index:4;opacity:var(--globe-surface-opacity,0);box-shadow:0 12px 28px #49391336}
   body.home::after{
     content:"";z-index:-1;opacity:var(--p);
     background:
@@ -85,9 +85,11 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
   }
 }
 @media print{body::before,body::after{display:none}main{background:none}}
+.globe-surface{display:none}
 </style>
 </head>
 <body>
+<canvas id="globe-surface" class="globe-surface" width="144" height="144" aria-hidden="true"></canvas>
 <main id="app"></main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -317,6 +319,65 @@ let displayedScroll = 0;
 let previousFrame = 0;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 const clampProgress = value => Math.min(1, Math.max(0, value));
+const globe = document.getElementById("globe-surface");
+const globeContext = globe.getContext("2d");
+const globeSize = globe.width;
+const globeFrame = globeContext.createImageData(globeSize, globeSize);
+const globePixels = [];
+const tau = 2 * Math.PI;
+let globeTexture;
+let lastGlobeAngle;
+const posterTexture = new Image();
+posterTexture.onload = () => {
+  const texture = document.createElement("canvas");
+  texture.width = 360;
+  texture.height = 180;
+  const ctx = texture.getContext("2d");
+  ctx.drawImage(posterTexture, 0, 0, texture.width, texture.height);
+  globeTexture = ctx.getImageData(0, 0, texture.width, texture.height);
+  for(let row = 0; row < globeSize; row++){
+    const y = (row + .5) * 2 / globeSize - 1;
+    const latitude = Math.asin(y) / Math.PI + .5;
+    for(let col = 0; col < globeSize; col++){
+      const x = (col + .5) * 2 / globeSize - 1;
+      const radius = Math.hypot(x, y);
+      if(radius >= 1) continue;
+      const z = Math.sqrt(1 - radius * radius);
+      globePixels.push({
+        offset: (row * globeSize + col) * 4,
+        longitude: Math.atan2(x, z) / tau + .5,
+        latitude,
+        textureRow: Math.floor(latitude * texture.height) * texture.width,
+        light: Math.max(.39, Math.min(1.13, .68 + .37*z - .25*x - .24*y)),
+        alpha: Math.min(255, (1 - radius) * globeSize * 127.5)
+      });
+    }
+  }
+  queueScroll();
+};
+const posterBackground = getComputedStyle(document.body, "::before").backgroundImage;
+posterTexture.src = posterBackground.slice(5, -2);
+function drawGlobe(turn){
+  if(!globeTexture) return;
+  const angle = Math.round(turn * 720) / 720;
+  if(angle === lastGlobeAngle) return;
+  lastGlobeAngle = angle;
+  const target = globeFrame.data;
+  const source = globeTexture.data;
+  for(const pixel of globePixels){
+    const u = (pixel.longitude - angle + 1) % 1;
+    const sourceOffset = (pixel.textureRow + Math.floor(u * globeTexture.width)) * 4;
+    const grid = Math.min(Math.abs(u * 8 - Math.round(u * 8)), Math.abs(pixel.latitude * 6 - Math.round(pixel.latitude * 6))) < .022;
+    const highlight = grid ? 32 : 0;
+    const i = pixel.offset;
+    target[i] = source[sourceOffset] * pixel.light + highlight;
+    target[i+1] = source[sourceOffset+1] * pixel.light + highlight;
+    target[i+2] = source[sourceOffset+2] * pixel.light + highlight;
+    target[i+3] = pixel.alpha;
+  }
+  globeContext.putImageData(globeFrame, 0, 0);
+}
+
 function drawScroll(now){
   scrollFrame = 0;
   const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -338,6 +399,8 @@ function drawScroll(now){
     document.body.style.setProperty("--poster-progress", progress.toFixed(4));
     document.body.style.setProperty("--globe-dock-progress", dock.toFixed(4));
     document.body.classList.toggle("globe-docking", dock > 0);
+    if(animate && dock > 0 && globeTexture) drawGlobe(dock);
+    document.body.style.setProperty("--globe-surface-opacity", globeTexture ? clampProgress(dock * 10) : 0);
     document.body.style.setProperty("--globe-panel-top", Math.max(16, panelTop) + "px");
   }
   previousFrame = displayedScroll === scroll ? 0 : now;
