@@ -141,7 +141,7 @@ w47:"놀이기구인 자이로드롭과 모기, 자신의 모습을 한데 모�
 w48:"자신이 좋아하는 동물의 특징을 사람의 얼굴과 합쳐 상상 속 캐릭터를 만든 입체 작품입니다. 얼굴의 모양을 자유롭게 바꾸고 표면을 울퉁불퉁하게 표현하면서 자신이 좋아하는 것을 특별한 조각으로 완성했습니다."
 };
 WORKS.forEach(w=>{ if(D[w.id]) w.desc = D[w.id]; });
-WORKS.filter(w=>w.s===1).forEach(w=>{ w.audio = w.id + ".mp3"; });
+WORKS.forEach(w=>{ w.audio = `docent-${w.id}.mp3`; });
 /* ============================== */
 
 const app = document.getElementById("app");
@@ -215,10 +215,10 @@ function work(w){
 }
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
-  app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p>${n===1?`<div class="btns"><button class="pri" id="studio-play" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p>`:""}<div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
+  app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns"><button class="pri" id="studio-play" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
   + WORKS.filter(w=>w.s===n).map(w=>{const h = w.g&&w.g!==g ? `<p class="mut">${esc(g=w.g)}</p>` : ""; return h+`<a class="card" href="#${w.id}"><b>${esc(w.title)}</b><span class="mut">${esc(w.artist)}</span></a>`;}).join("");
-  if(n===1){
-    const audio = new Audio("play-nonplay-intro.mp3");
+  {
+    const audio = new Audio(`docent-studio-${n}.mp3`);
     audio.preload = "metadata";
     const button = document.getElementById("studio-play");
     const status = document.getElementById("studio-audio-status");
