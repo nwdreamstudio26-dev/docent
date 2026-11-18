@@ -25,10 +25,6 @@ a{color:var(--ac)}
 body.home .card{position:relative;padding-left:58px}
 body.home .studio-star{position:absolute;left:16px;top:50%;transform:translateY(-50%);margin-right:0}
 .studio-star{display:inline-block;width:32px;height:32px;vertical-align:middle;margin-right:10px;background-image:url("studio-stars.png");background-repeat:no-repeat;background-size:540px 540px;flex-shrink:0}
-.hero{height:180px;border-radius:14px;background:linear-gradient(135deg,var(--line),var(--card));display:flex;align-items:center;justify-content:center;color:var(--mut);margin:12px 0}
-.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:14px 0}
-.tabs button{flex:1;padding:10px;border:0;background:none;color:var(--mut);font:inherit;border-bottom:2px solid transparent}
-.tabs button[aria-selected="true"]{color:var(--fg);border-color:var(--ac);font-weight:700}
 .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
 .btns button,.btns select,.pbtn{padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--fg);font:inherit;min-height:44px}
 .btns .pri{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:700}
@@ -38,15 +34,16 @@ body.home .studio-star{position:absolute;left:16px;top:50%;transform:translateY(
 [data-studio="3"]{--studio-color:#fbd648}
 [data-studio="4"]{--studio-color:#68c592}
 audio{width:100%;margin:8px 0}
-.desc{white-space:pre-line}.hl{background:color-mix(in srgb,var(--ac) 24%,transparent);border-radius:4px}#atx span{cursor:pointer}
+.desc{white-space:pre-line}
 .qrgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
 .qrbox{background:#fff;color:#111;border:1px solid var(--line);border-radius:12px;padding:14px;text-align:center;break-inside:avoid}
 .qrbox div.q{display:flex;justify-content:center;margin-bottom:8px}
 .qrbox b{display:block}
 .back{font-family:var(--hf);font-size:1.15rem;font-weight:400;text-decoration:none;color:var(--hd);text-shadow:2px 0 var(--hdo),-2px 0 var(--hdo),0 2px var(--hdo),0 -2px var(--hdo),1.5px 1.5px var(--hdo),-1.5px 1.5px var(--hdo),1.5px -1.5px var(--hdo),-1.5px -1.5px var(--hdo)}
-.back-home{color:#000;text-shadow:none}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .back-home{background:#fafaf7;border-radius:4px;padding-inline:.25em}}
-:root[data-theme="dark"] .back-home{background:#fafaf7;border-radius:4px;padding-inline:.25em}
+.back-home{display:inline-flex;align-items:center;min-height:44px;padding:7px 16px;background:#fff4bd;color:#000;border:1px solid #bc9d4c;border-radius:999px;text-shadow:none}
+.back-home:hover{background:#ffe99a}
+.back-home:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.pbtn small{display:block;font-size:.8rem}
 @media screen and (max-width:640px){
   .desc{word-break:keep-all;overflow-wrap:anywhere;line-height:1.85}
 }
@@ -97,7 +94,6 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
 <body>
 <canvas id="globe-surface" class="globe-surface" width="224" height="224" aria-hidden="true"></canvas>
 <main id="app"></main>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 /* ===== 여기만 수정하세요 =====
    audio: 녹음 파일(mp3)을 data URI로 넣거나, 비워두면 휴대폰 음성합성(TTS)으로 설명을 읽어줍니다.
@@ -224,7 +220,7 @@ function work(w){
   <div class="btns"><button class="pri" id="play" data-studio="${w.s}" aria-pressed="false">▶ 음성 재생</button></div>
   <p class="mut" id="audio-status" role="status"></p>
   <div class="desc">${esc(w.desc||"작품 설명을 준비 중입니다.")}</div>
-  <div class="btns">${prev?`<a class="pbtn" href="#${prev.id}">← 이전 작품</a>`:""}${next?`<a class="pbtn" href="#${next.id}">다음 작품 →</a>`:""}</div>`;
+  <nav class="btns" aria-label="작품 이동">${prev?`<a class="pbtn" href="#${prev.id}">← 이전 작품${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${next?`<a class="pbtn" href="#${next.id}">다음 작품 →${next.s!==w.s?`<small>${esc(STUDIOS[next.s-1].name)}</small>`:""}</a>`:""}</nav>`;
   const button = document.getElementById("play");
   const status = document.getElementById("audio-status");
   let state = "idle";
@@ -289,6 +285,20 @@ function studio(s){
     };
   }}
 
+let qrLibrary;
+function loadQrLibrary(){
+  if(typeof QRCode !== "undefined") return Promise.resolve();
+  if(!qrLibrary){
+    qrLibrary = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+      script.onload = resolve;
+      script.onerror = () => { script.remove(); reject(); };
+      document.head.append(script);
+    }).catch(error => { qrLibrary = null; throw error; });
+  }
+  return qrLibrary;
+}
 function qr(){
   let base = "";
   try{ base = localStorage.getItem("docentBase")||""; }catch(e){}
@@ -299,25 +309,41 @@ function qr(){
   <p id="bm" class="noprint" style="color:#c0392b;margin:0"></p>
   <div class="btns noprint"><button class="pri" onclick="window.print()">인쇄 / PDF 저장</button></div>
   <div class="qrgrid">${ITEMS.map(w=>`<div class="qrbox"><div class="q" id="q-${w.id}"></div><b>${esc(w.title)}</b><small>${esc(w.artist)}</small></div>`).join("")}</div>`;
-  if(typeof QRCode === "undefined"){ app.insertAdjacentHTML("beforeend","<p>QR 라이브러리를 불러오지 못했습니다.</p>"); return; }
   const bs = document.getElementById("bs"), bm = document.getElementById("bm"); bs.value = base;
-  const build = () => {
+  const build = async () => {
     const b = bs.value.trim().split("#")[0];
     if(!/^https?:\/\//.test(b)){ bm.textContent = "공유 링크(https://로 시작)를 붙여넣어 주세요."; return; }
+    bm.textContent = "QR코드를 불러오는 중입니다.";
+    try{ await loadQrLibrary(); }catch(e){ bm.textContent = "QR 라이브러리를 불러오지 못했습니다. 다시 시도해 주세요."; return; }
+    if(!bs.isConnected) return;
     bm.textContent = ""; try{ localStorage.setItem("docentBase", b); }catch(e){}
     ITEMS.forEach(w=>{ const el = document.getElementById("q-"+w.id); el.innerHTML = ""; new QRCode(el,{text:b+"#"+w.id,width:160,height:160,correctLevel:QRCode.CorrectLevel.M}); });
   };
-  document.getElementById("mk").onclick = build; if(base) build();
+  document.getElementById("mk").onclick = build; if(base) build(); else loadQrLibrary().catch(()=>{});
 }
 
-function route(){
+function route(event){
   stopTTS();
   document.body.classList.remove("home");
   const h = location.hash.slice(1);
   const w = WORKS.find(x=>x.id===h);
   const s = STUDIOS.find(x=>x.id===h);
   if(h==="qr") qr(); else if(s) studio(s); else if(w) work(w); else home();
-  window.scrollTo(0,0);
+  const previousId = event ? new URL(event.oldURL).hash.slice(1) : "";
+  const previousWork = s && WORKS.find(item => item.id === previousId);
+  const previousCard = previousWork && STUDIOS[previousWork.s-1] === s
+    ? app.querySelector(`.card[href="#${previousWork.id}"]`) : null;
+  if(previousCard){
+    previousCard.scrollIntoView({block:"center"});
+    previousCard.focus({preventScroll:true});
+  }else{
+    window.scrollTo(0,0);
+    const heading = event && app.querySelector("h1,h2");
+    if(heading){
+      heading.tabIndex = -1;
+      heading.focus({preventScroll:true});
+    }
+  }
 }
 window.addEventListener("hashchange", route);
 let scrollFrame = 0;
