@@ -40,8 +40,7 @@ audio{width:100%;margin:8px 0}
 .qrbox div.q{display:flex;justify-content:center;margin-bottom:8px}
 .qrbox b{display:block}
 .back{font-family:var(--hf);font-size:1.15rem;font-weight:400;text-decoration:none;color:var(--hd);text-shadow:2px 0 var(--hdo),-2px 0 var(--hdo),0 2px var(--hdo),0 -2px var(--hdo),1.5px 1.5px var(--hdo),-1.5px 1.5px var(--hdo),1.5px -1.5px var(--hdo),-1.5px -1.5px var(--hdo)}
-.back-home{display:inline-flex;align-items:center;min-height:44px;padding:7px 16px;background:#fff4bd;color:#000;border:1px solid #bc9d4c;border-radius:999px;text-shadow:none}
-.back-home:hover{background:#ffe99a}
+.back-home{display:inline-flex;align-items:center;min-height:44px;padding:7px 16px;background:#fff;color:#000;border:1px solid #000;border-radius:999px;text-shadow:none}
 .back-home:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 .pbtn small{display:block;font-size:.8rem}
 @media screen and (max-width:640px){
@@ -215,12 +214,13 @@ function home(){
 function work(w){
   const i = WORKS.indexOf(w);
   const prev = WORKS[i-1], next = WORKS[i+1];
+  const nextStudio = next && next.s !== w.s ? STUDIOS[next.s-1] : null;
   app.innerHTML = `<p><a href="#${STUDIOS[w.s-1].id}">← ${esc(STUDIOS[w.s-1].name)}</a></p>
   <h2>${esc(w.title)}</h2><p class="mut">${esc(w.artist)}${w.g?" · "+esc(w.g):""}</p>
   <div class="btns"><button class="pri" id="play" data-studio="${w.s}" aria-pressed="false">▶ 음성 재생</button></div>
   <p class="mut" id="audio-status" role="status"></p>
   <div class="desc">${esc(w.desc||"작품 설명을 준비 중입니다.")}</div>
-  <nav class="btns" aria-label="작품 이동">${prev?`<a class="pbtn" href="#${prev.id}">← 이전 작품${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${next?`<a class="pbtn" href="#${next.id}">다음 작품 →${next.s!==w.s?`<small>${esc(STUDIOS[next.s-1].name)}</small>`:""}</a>`:""}</nav>`;
+  <nav class="btns" aria-label="작품 이동">${prev?`<a class="pbtn" href="#${prev.id}">← 이전 작품${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${nextStudio?`<a class="pbtn" href="#${nextStudio.id}">다음 스튜디오 소개 →<small>${esc(nextStudio.name)}</small></a>`:next?`<a class="pbtn" href="#${next.id}">다음 작품 →</a>`:""}</nav>`;
   const button = document.getElementById("play");
   const status = document.getElementById("audio-status");
   let state = "idle";
@@ -262,8 +262,13 @@ function work(w){
 }
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
-  app.innerHTML = `<p><a class="back back-home" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns"><button class="pri" id="studio-play" data-studio="${n}" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
-  + WORKS.filter(w=>w.s===n).map(w=>{const h = w.g&&w.g!==g ? `<p class="mut">${esc(g=w.g)}</p>` : ""; return h+`<a class="card" href="#${w.id}"><b>${esc(w.title)}</b><span class="mut">${esc(w.artist)}</span></a>`;}).join("");
+  app.innerHTML = `<p><a class="back back-home" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns"><button class="pri" id="studio-play" data-studio="${n}" aria-pressed="false">▶ 도슨트 음성 재생</button><button id="jump-to-works" type="button">↓ 작품 바로가기</button></div><p id="studio-audio-status" class="mut" role="status"></p><div class="desc">${esc(s.intro)}</div><h2 id="work-list-heading" tabindex="-1">작품 목록</h2>`
+  + WORKS.filter(w=>w.s===n).map(w=>{const h = w.g&&w.g!=="조각 프로젝트"&&w.g!==g ? `<p class="mut">${esc(g=w.g)}</p>` : ""; return h+`<a class="card" href="#${w.id}"><b>${esc(w.title)}</b><span class="mut">${esc(w.artist)}</span></a>`;}).join("");
+  document.getElementById("jump-to-works").onclick = () => {
+    const heading = document.getElementById("work-list-heading");
+    heading.focus({preventScroll:true});
+    heading.scrollIntoView({behavior:reducedMotion.matches ? "auto" : "smooth",block:"start"});
+  };
   {
     const audio = new Audio(`docent-studio-${n}.mp3`);
     audio.preload = "metadata";
