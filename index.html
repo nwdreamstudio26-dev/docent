@@ -89,7 +89,7 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
 </style>
 </head>
 <body>
-<canvas id="globe-surface" class="globe-surface" width="144" height="144" aria-hidden="true"></canvas>
+<canvas id="globe-surface" class="globe-surface" width="224" height="224" aria-hidden="true"></canvas>
 <main id="app"></main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
@@ -330,14 +330,17 @@ let lastGlobeAngle;
 const posterTexture = new Image();
 posterTexture.onload = () => {
   const texture = document.createElement("canvas");
-  texture.width = 360;
-  texture.height = 180;
+  texture.width = 720;
+  texture.height = Math.round(posterTexture.naturalHeight * texture.width / posterTexture.naturalWidth);
   const ctx = texture.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
   ctx.drawImage(posterTexture, 0, 0, texture.width, texture.height);
   globeTexture = ctx.getImageData(0, 0, texture.width, texture.height);
   for(let row = 0; row < globeSize; row++){
     const y = (row + .5) * 2 / globeSize - 1;
     const latitude = Math.asin(y) / Math.PI + .5;
+    const textureY = latitude * (texture.height - 1);
+    const rowStart = Math.floor(textureY);
     for(let col = 0; col < globeSize; col++){
       const x = (col + .5) * 2 / globeSize - 1;
       const radius = Math.hypot(x, y);
@@ -346,9 +349,10 @@ posterTexture.onload = () => {
       globePixels.push({
         offset: (row * globeSize + col) * 4,
         longitude: Math.atan2(x, z) / tau + .5,
-        latitude,
-        textureRow: Math.floor(latitude * texture.height) * texture.width,
-        light: Math.max(.39, Math.min(1.13, .68 + .37*z - .25*x - .24*y)),
+        rowStart: rowStart * texture.width * 4,
+        rowEnd: Math.min(rowStart + 1, texture.height - 1) * texture.width * 4,
+        rowMix: textureY - rowStart,
+        light: Math.max(.58, Math.min(1.05, .77 + .23*z - .15*x - .13*y)),
         alpha: Math.min(255, (1 - radius) * globeSize * 127.5)
       });
     }
@@ -364,15 +368,34 @@ function drawGlobe(turn){
   lastGlobeAngle = angle;
   const target = globeFrame.data;
   const source = globeTexture.data;
+  const lastColumn = globeTexture.width - 1;
+  const seam = Math.round(lastColumn * .08);
+  const wrapWidth = lastColumn - seam;
   for(const pixel of globePixels){
     const u = (pixel.longitude - angle + 1) % 1;
-    const sourceOffset = (pixel.textureRow + Math.floor(u * globeTexture.width)) * 4;
-    const grid = Math.min(Math.abs(u * 8 - Math.round(u * 8)), Math.abs(pixel.latitude * 6 - Math.round(pixel.latitude * 6))) < .022;
-    const highlight = grid ? 32 : 0;
+    const x = u * wrapWidth;
+    const column = Math.floor(x);
+    const mix = x - column;
+    const left = column * 4;
+    const right = left + 4;
+    const seamMix = x < seam ? 1 - x / seam : 0;
     const i = pixel.offset;
-    target[i] = source[sourceOffset] * pixel.light + highlight;
-    target[i+1] = source[sourceOffset+1] * pixel.light + highlight;
-    target[i+2] = source[sourceOffset+2] * pixel.light + highlight;
+    for(let channel = 0; channel < 3; channel++){
+      const a = pixel.rowStart + left + channel;
+      const b = pixel.rowStart + right + channel;
+      const rowOffset = pixel.rowEnd - pixel.rowStart;
+      const top = source[a] + (source[b] - source[a]) * mix;
+      const bottom = source[a + rowOffset] + (source[b + rowOffset] - source[a + rowOffset]) * mix;
+      let color = top + (bottom - top) * pixel.rowMix;
+      if(seamMix){
+        const end = a + wrapWidth * 4;
+        const endTop = source[end] + (source[end + 4] - source[end]) * mix;
+        const endBottom = source[end + rowOffset] + (source[end + rowOffset + 4] - source[end + rowOffset]) * mix;
+        const endColor = endTop + (endBottom - endTop) * pixel.rowMix;
+        color += (endColor - color) * seamMix;
+      }
+      target[i + channel] = color * pixel.light;
+    }
     target[i+3] = pixel.alpha;
   }
   globeContext.putImageData(globeFrame, 0, 0);
