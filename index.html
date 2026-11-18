@@ -72,6 +72,8 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
     pointer-events:none;
   }
   body.home::before{background-color:transparent;background-position:center;background-size:cover;filter:none;transform:none;will-change:auto}
+  body.home.globe-docking::before{z-index:2}
+  body.home.globe-docking::after{z-index:3}
   body.home::after{
     content:"";z-index:-1;opacity:var(--p);
     background:
@@ -319,6 +321,7 @@ function upd(){
     document.body.style.setProperty("--poster-progress", progress.toFixed(3));
     const dock = Math.min(1, Math.max(0, (window.scrollY - distance) / Math.max(1, max - distance)));
     document.body.style.setProperty("--globe-dock-progress", dock.toFixed(3));
+    document.body.classList.toggle("globe-docking", dock > 0);
   }
 }
 window.addEventListener("scroll", upd, {passive:true});
