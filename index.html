@@ -62,6 +62,7 @@ body.home main{margin-top:min(100vh,125vw);margin-top:min(100svh,125vw)}
     --poster-width:min(100vw,80.07vh);
     --poster-width:min(100vw,80.07svh);
     --dock:var(--globe-dock-progress,0);
+    rotate:calc(1turn * var(--dock));
     --globe-size:calc(min(56vw,270px) * (1 - var(--dock)) + 72px * var(--dock));
     translate:calc((min(50vw - 12px,320px) - 50px) * var(--dock)) 0;
     position:fixed;inset:calc(env(safe-area-inset-top,0px) + 24px * var(--p) * (1 - var(--dock)) + var(--globe-panel-top,16px) * var(--dock)) 0 auto;
