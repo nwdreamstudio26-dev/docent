@@ -44,6 +44,12 @@ audio{width:100%;margin:8px 0}
 .qrbox div.q{display:flex;justify-content:center;margin-bottom:8px}
 .qrbox b{display:block}
 .back{font-family:var(--hf);font-size:1.15rem;font-weight:400;text-decoration:none;color:var(--hd);text-shadow:2px 0 var(--hdo),-2px 0 var(--hdo),0 2px var(--hdo),0 -2px var(--hdo),1.5px 1.5px var(--hdo),-1.5px 1.5px var(--hdo),1.5px -1.5px var(--hdo),-1.5px -1.5px var(--hdo)}
+.back-home{color:#000;text-shadow:none}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .back-home{background:#fafaf7;border-radius:4px;padding-inline:.25em}}
+:root[data-theme="dark"] .back-home{background:#fafaf7;border-radius:4px;padding-inline:.25em}
+@media screen and (max-width:640px){
+  .desc{word-break:keep-all;overflow-wrap:anywhere;line-height:1.85}
+}
 @media print{.back{text-shadow:none}}
 @media print{.noprint{display:none!important}body{background:#fff}}
 
@@ -260,7 +266,7 @@ function work(w){
 }
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
-  app.innerHTML = `<p><a class="back" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns"><button class="pri" id="studio-play" data-studio="${n}" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
+  app.innerHTML = `<p><a class="back back-home" href="#">← 전체 스튜디오</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns"><button class="pri" id="studio-play" data-studio="${n}" aria-pressed="false">▶ 도슨트 음성 재생</button></div><p id="studio-audio-status" class="mut" role="status"></p><div class="desc">${esc(s.intro)}</div><h2>작품 목록</h2>`
   + WORKS.filter(w=>w.s===n).map(w=>{const h = w.g&&w.g!==g ? `<p class="mut">${esc(g=w.g)}</p>` : ""; return h+`<a class="card" href="#${w.id}"><b>${esc(w.title)}</b><span class="mut">${esc(w.artist)}</span></a>`;}).join("");
   {
     const audio = new Audio(`docent-studio-${n}.mp3`);
