@@ -460,7 +460,18 @@ function home(){
   app.innerHTML = `<a class="eng-preview" href="${english ? './' : '?lang=en'}" lang="${english ? 'ko' : 'en'}" aria-label="${label("English", "한국어")}">${label("Eng", "한국어")}</a><p class="mut">${label("디지털 도슨트", "Digital Exhibition Guide")}</p><h1>${esc(EXHIBITION.title).replace("\n", "<br>")}</h1>
   <p class="mut">${esc(EXHIBITION.place)}</p>
   <p>${label("아래 목록에서 작품을 선택하세요.", "Choose an artwork from the list below.")}</p>
+  ${english ? '<div class="btns"><a class="pbtn" href="#introduction">Introduction</a></div>' : ""}
   ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="studio-star" style="background-position:${["-217.5px -174px","-325px -181px","-332px -228.5px","-212px -228.5px"][i]}" aria-hidden="true"></span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}`;
+}
+
+function introduction(){
+  app.innerHTML = `<p><a class="back back-home" href="#">← Home</a></p>
+  <h2>Introduction</h2>
+  <p><strong>${esc(EXHIBITION.title).replace("\n", "<br>")}</strong></p>
+  <p>Dream Studio is a time when children visit artists' studios and experience firsthand where art is made. What did the children see in the artists' spaces? Not only the pencils, erasers, paints, and brushes they use at school and home, but also strange materials they'd never seen before, the artist-teachers' works that may or may not be finished, and objects that carried traces of the artists' lives. In that place, the children naturally sensed and experienced the artists' art and lives.</p>
+  <p>The artists felt the same way. Just as the children observed a world that is diverse, complex, and sometimes higgledy-piggledy, the artists also rediscovered the innocence they had forgotten and found new artistic inspiration through the children's perspectives. Watching children find and create something in their own way, even when given the same materials and conditions at the same site and time, the artists encountered unexpected results every time.</p>
+  <p>How many of these children will grow up to become artists? Statistically, it's possible that none of the 31 will. However, even if the children end up in work unrelated to art, we believe that if they keep the artist's way of seeing and thinking they gained through Dream Studio—exploring the world, asking questions, and trying to express themselves in their own way—then whatever kind of adults they become, they will live creative and joyful lives.</p>
+  <p>French artist Robert Filliou said, "<span lang="fr">l'art est ce qui rend la vie plus intéressante que l'art.</span>" (Art is what makes life more interesting than art.) The higgledy-piggledy world that the children and artists viewed with interest through art at Dream Studio now unfolds in this exhibition. Ta-da!</p>`;
 }
 
 function work(w){
@@ -587,7 +598,8 @@ function route(event){
   const h = location.hash.slice(1);
   const w = WORKS.find(x=>x.id===h);
   const s = STUDIOS.find(x=>x.id===h);
-  if(h==="qr" && !english) qr(); else if(s) studio(s); else if(w) work(w); else home();
+  if(h==="introduction" && english) introduction();
+  else if(h==="qr" && !english) qr(); else if(s) studio(s); else if(w) work(w); else home();
   const previousId = event ? new URL(event.oldURL).hash.slice(1) : "";
   const previousWork = s && WORKS.find(item => item.id === previousId);
   const previousCard = previousWork && STUDIOS[previousWork.s-1] === s
