@@ -429,7 +429,7 @@ if(english){
 };
   const groups = {[A]:"Three-dimensional works",[B]:"Two-dimensional works",[C]:"Acrylic panel works",[P]:"Fragment Project"};
   document.documentElement.lang = "en";
-  EXHIBITION.title = "Ta-da! A Higgledy-Piggledy World, What Did We See?";
+  EXHIBITION.title = "Ta-da! A Higgledy-Piggledy World,\nWhat Did We See?";
   EXHIBITION.place = "2026 Dream Studio Nowon · Gyeongchun Line Forest Trail Gallery · Nov 13–29, 2026";
   document.title = EXHIBITION.title + " · Digital Exhibition Guide";
   STUDIOS.forEach((studio, i) => {
@@ -457,7 +457,7 @@ const NUMC = [
 ];
 function home(){
   document.body.classList.add("home");
-  app.innerHTML = `<a class="eng-preview" href="${english ? './' : '?lang=en'}" lang="${english ? 'ko' : 'en'}" aria-label="${label("English", "한국어")}">${label("Eng", "한국어")}</a><p class="mut">${label("디지털 도슨트", "Digital Exhibition Guide")}</p><h1>${esc(EXHIBITION.title)}</h1>
+  app.innerHTML = `<a class="eng-preview" href="${english ? './' : '?lang=en'}" lang="${english ? 'ko' : 'en'}" aria-label="${label("English", "한국어")}">${label("Eng", "한국어")}</a><p class="mut">${label("디지털 도슨트", "Digital Exhibition Guide")}</p><h1>${esc(EXHIBITION.title).replace("\n", "<br>")}</h1>
   <p class="mut">${esc(EXHIBITION.place)}</p>
   <p>${label("아래 목록에서 작품을 선택하세요.", "Choose an artwork from the list below.")}</p>
   ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="studio-star" style="background-position:${["-217.5px -174px","-325px -181px","-332px -228.5px","-212px -228.5px"][i]}" aria-hidden="true"></span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}`;
