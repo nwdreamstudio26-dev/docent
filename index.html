@@ -637,7 +637,23 @@ queueCoverOpacity();
 if(document.body.classList.contains("home")){
   requestAnimationFrame(() => {
     if(document.body.classList.contains("home") && window.scrollY === 0){
-      app.scrollIntoView({behavior:reducedMotion.matches ? "instant" : "smooth", block:"start"});
+      if(reducedMotion.matches){
+        app.scrollIntoView({behavior:"instant", block:"start"});
+        return;
+      }
+      const duration = 700;
+      const started = performance.now();
+      let previousY = window.scrollY;
+      const animate = now => {
+        if(!document.body.classList.contains("home") || Math.abs(window.scrollY - previousY) > 1) return;
+        const progress = Math.min(1, (now - started) / duration);
+        const targetY = previousY + app.getBoundingClientRect().top;
+        const eased = progress * progress * (3 - 2 * progress);
+        window.scrollTo({top:targetY * eased, behavior:"instant"});
+        previousY = window.scrollY;
+        if(progress < 1) requestAnimationFrame(animate);
+      };
+      requestAnimationFrame(animate);
     }
   });
 }
