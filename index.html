@@ -73,7 +73,7 @@ main :is(h1,h2)[tabindex="-1"]:focus{outline:none}
 body.home{isolation:isolate;background-color:#fbeb8b;background-color:color-mix(in srgb,#fbeb8b,#fff calc(var(--cover-progress,0) * 65%))}
 body.home::before{opacity:calc(1 - .45 * var(--cover-progress,0));inset:env(safe-area-inset-top,0px) 0 auto;margin-inline:auto;width:min(100%,80.07vh);width:min(100%,80.07svh);aspect-ratio:900/1124;border-radius:18px;background-color:transparent;background-size:100% 100%;transform:none}
 @media print{body::before{display:none}main{background:none}}
-.eng-preview{position:absolute;top:16px;right:18px;display:grid;place-items:center;min-width:44px;min-height:44px;padding:0 12px;border:1px solid #ffffffdb;border-radius:999px;background:#ffffffb5;color:#232d35;font:700 14px system-ui;box-shadow:0 2px 7px #34405c1f;opacity:1}
+.eng-preview{position:absolute;top:16px;right:18px;display:grid;place-items:center;min-width:44px;min-height:44px;padding:0 12px;border:1px solid #ffffffdb;border-radius:999px;background:#ffffffb5;color:#232d35;font:700 14px system-ui;box-shadow:0 2px 7px #34405c1f;text-decoration:none}
 </style>
 </head>
 <body>
@@ -175,6 +175,273 @@ WORKS.forEach(w=>{ if(D[w.id]) w.desc = D[w.id]; });
 WORKS.forEach(w=>{ w.audio = `docent-${w.id}.mp3`; });
 /* ============================== */
 
+const english = new URLSearchParams(location.search).get("lang") === "en";
+const label = (ko, en) => english ? en : ko;
+if(english){
+  const studios = [
+  [
+    "Play/Nonplay",
+    "Choi Hee-won Studio",
+    "In Play/Nonplay, artist Choi Hee-won invited children to look closely at everyday materials such as stones, twigs, soap and scraps of fabric. By collecting and reimagining these objects, the children developed their own ways of seeing them.\n\nEach child chose what to make and which materials to use. Along the way, they explored techniques such as cutting board cleanly and drilling into wood. The works on display grew out of their first conversations with the artist and the experiments that followed."
+  ],
+  [
+    "Focusing on My Own Eyes",
+    "Park Si-yeon Studio",
+    "Artist Park Si-yeon, who publishes independent comics as Pluto, brought painting and comics together in two projects. In the individual Fragment Project, children drew memories, wishes and imagined scenes on scraps of paper, then arranged them to see what stories might emerge.\n\nFor the group project Color Territory, each child started with a single paint color and worked within reach along a four-meter strip of silk. Then they let their colors travel into one another’s spaces. As the paint spread and their marks overlapped, they explored what could happen when they let go of their original plans."
+  ],
+  [
+    "Sound Explorers",
+    "Lee Chang-hee Studio",
+    "Sound Explorers is an art program in which younger elementary students turn everyday sounds into visual forms. The children drew the lines and shapes they imagined while listening, then made two- and three-dimensional works with paper, straws, plaster and other materials.\n\nThey discovered new ways to express themselves by experimenting with materials and noticing unexpected results. The exhibition shares what each child found by imagining, drawing and building with sound."
+  ],
+  [
+    "Children Looking at the World Themselves",
+    "Park Seong-min Studio",
+    "In Park Seong-min’s studio, children explored new ways to see the world and express their ideas through art. They took inspiration from Futurism, Constructivism and the Bauhaus, then experimented with dots, lines, shapes, colors and space.\n\nThey sculpted imaginary faces in clay, painted with colors and shapes, and took apart and rebuilt architectural models. Visiting a museum and talking with a working artist encouraged them to express their ideas freely and trust their own ways of seeing."
+  ]
+];
+  const works = [
+  [
+    "B-2 Stealth Bomber and Propeller Plane",
+    "Kim Hyeon-woo built a B-2 stealth bomber and a propeller plane with its inner framework exposed. He also worked with his close friend Nam Yeon-seo on the nearby Towers of Glue Gun Land. Each tower houses a company the artists named themselves."
+  ],
+  [
+    "Montgomery Gator",
+    "Kim Dan-woo wanted to bring a favorite video game character into the real world. He carved a large block of urethane foam and cut and attached leather to explore three-dimensional form. The finished mask can be worn."
+  ],
+  [
+    "Wax Object Series",
+    "Lee A-in melted wax in warm water and mixed in powdered pastel pigments. She poured the colored wax into molds and let it set. For Heart Rice Cake, she made her own mold."
+  ],
+  [
+    "Pipe Cleaner Object Series",
+    "Nam Yeon-seo explored the soft fuzz and bending movement of pipe cleaners. She spent much of the class experimenting and also studied the properties of springs, wood and other materials."
+  ],
+  [
+    "House on a Hill · Sky",
+    "House on a Hill brings together foam, fabric, vinyl and wood, with particular attention to building with a 3D pen. For Sky, Ham Seon-a rolled glitter paint onto the surface and attached cotton. Spray adhesive left a sparkling, powdery finish as it dried."
+  ],
+  [
+    "Dollhouse (Yuti’s Room)",
+    "This tiny home depicts the everyday life of Yuti in a world of dolls. Min Yu-ha learned to crochet while making the piece and spent time exploring the intricate stitches."
+  ],
+  [
+    "McDonald’s and Sculpture Series",
+    "Yu Chae-yun’s wish to become a chef inspired the McDonald’s restaurant and the sculptures around it. To make Banana, Yu observed and touched a real banana, collected words about it and turned them into drawings and sculpture. The Shared Restroom in front is for humans and animals such as wombats and rabbits."
+  ],
+  [
+    "Dollhouse",
+    "Pastel colors, fluttering curtains and a pool above the attic give this dollhouse its character. Jo A-in chose colors carefully and experimented with ways to make the house and furniture sturdy."
+  ],
+  [
+    "Little Everyday Moments",
+    "I drew a day picking flowers with a friend, waiting for a friend at a bus stop, and the happiness of buying merchandise featuring my favorite characters at a comics event."
+  ],
+  [
+    "Let’s Play Together",
+    "I drew the awkward moment of trying to hold a friend’s hand and, at the center, watching fireworks together. Other fragments show finger painting, meeting a cute white puppy and a favorite character."
+  ],
+  [
+    "Something Tiny and Cute",
+    "I drew small, cute things, including my little dog, a rabbit character from a comic and my art supplies."
+  ],
+  [
+    "A Bittersweet Day",
+    "I drew the beetle I couldn’t bring myself to throw away and remembered opening a book at exactly the page I’d been reading. I also included water running down my arm while brushing my teeth and soaking my clothes, and the taste of sweet bubble tea."
+  ],
+  [
+    "Daydreaming",
+    "I imagined baking, going to space and having a picnic in the park. Alongside things I’d like to do, I drew a story about an imaginary rabbit family."
+  ],
+  [
+    "Dream",
+    "I followed the pencil and brush wherever they went. The little people exploring the marks I made on the paper look like something from a dream."
+  ],
+  [
+    "My Day",
+    "I pasted together textbook-style doodles and small everyday scenes. On some pieces I experimented freely with paint."
+  ],
+  [
+    "Exploration",
+    "I combined imagined lizards and roses with real memories, including visiting tidal flats and playing basketball at school. The imagined creatures and familiar scenes invite you to explore both worlds."
+  ],
+  [
+    "Floating",
+    "I drew myself swimming through memories, from fireworks and a sunset over the ocean to a startling day when I dropped my ice cream cone."
+  ],
+  [
+    "Joa School House",
+    "The group joined sticks to build a large house and added plaster bandage. They colored it with pastels to create a school of their own, full of happy moments and free from homework and scolding."
+  ],
+  [
+    "Framework of a Ruined Building",
+    "Connected sticks and plaster bandage form the skeleton of a building. Uneven lines and open spaces suggest a structure that has fallen apart."
+  ],
+  [
+    "Rainbow Space Factory",
+    "The group built a large structure from sticks and plaster bandage. Modeling paste and acrylic paint added texture and color to the factory they imagined in outer space."
+  ],
+  [
+    "For Someone I Don’t Know",
+    "Layers of gouache, oil pastel and wax give shape to a feeling the artist wanted to share with someone they’ve never met."
+  ],
+  [
+    "Hidden Feelings",
+    "Layers of colors and materials express feelings that cannot be seen. Look among the different shapes and colors and imagine what feelings might be hiding there."
+  ],
+  [
+    "Ocean Cake",
+    "The artist combined the sea and a cake in one scene. Pastel colors and raised textures made with materials including La Doll modeling clay bring this imagined place to life."
+  ],
+  [
+    "In the Forest",
+    "Layers of color and raised textures give form to the artist’s imagined forest."
+  ],
+  [
+    "A Snowman’s Own Sunset",
+    "The artist imagined the sunset a snowman might see. A warm sky contrasts with the textured surface of the snowman."
+  ],
+  [
+    "A Rainy Day",
+    "Gouache and pastel color the scene, while raised raindrops make the rainy day feel alive."
+  ],
+  [
+    "Frozen Ocean Warehouse",
+    "The artist imagined friends living in a cold ocean and used color and three-dimensional materials to make a distinctive underwater world."
+  ],
+  [
+    "Sound",
+    "The artist turned the lines and shapes suggested by sound into layers of gouache, oil pastel, wax and La Doll modeling clay."
+  ],
+  [
+    "Summer Café",
+    "Sounds inspired a scene at a summer café. The children passed drawings around and added new images, then layered tracing paper so several scenes could be seen together."
+  ],
+  [
+    "Smashing a Nuclear Bomb",
+    "The artist drew the energetic movements and scenes suggested by sound, adding new images over shapes and lines drawn by friends."
+  ],
+  [
+    "Fairy Village",
+    "Sounds inspired an imaginary fairy village. Drawings on tracing paper and images added by friends come together in layers to form the village."
+  ],
+  [
+    "Dangerous Sea",
+    "The artist connected familiar objects, including an air conditioner, with the sea. Layers of images exchanged with friends invite us to consider how the things we use affect the ocean."
+  ],
+  [
+    "Incheon Airport",
+    "Noise from outside brought an airport to mind. Lines and shapes drawn by friends overlap to bring several scenes together."
+  ],
+  [
+    "Four Seasons of Sound",
+    "The artist expressed the moods of the four seasons through colors and shapes inspired by sound. Friends added images, and layers of tracing paper brought the different seasons together."
+  ],
+  [
+    "Outside Noise",
+    "Lines and colors represent everyday noises. Friends exchanged drawings and layered their impressions of sound to make a dense, colorful image."
+  ],
+  [
+    "The Snail’s Uphill Path",
+    "A shape suggested by sound became a snail’s shell and inspired a path for it to travel. The artist built the scene by adding to friends’ lines and layering several drawings."
+  ],
+  [
+    "Shortcut",
+    "Accidental splashes and spreading paint create lively shapes and movements. The artist used the marks they discovered to develop a picture of their own."
+  ],
+  [
+    "Composition of a Modern Person",
+    "Dots, lines and geometric shapes transform the human figure. Free, doodle-like marks and combinations of colors and shapes bring this character to life."
+  ],
+  [
+    "Fishing",
+    "Wood and wire meet in a structure balanced on four supports. Connecting materials in different directions gave the artist a way to express an interest in fishing."
+  ],
+  [
+    "And",
+    "The artist freely reshaped a face to invent a one-of-a-kind character and gave it form as a sculpture."
+  ],
+  [
+    "Dream",
+    "Figures in a landscape of reality and imagination inhabit the world the artist dreams of. Free brushstrokes and color evoke the mysterious atmosphere of a dream."
+  ],
+  [
+    "Beginning",
+    "Colorful musical notes and shapes make the rhythm and movement of music visible."
+  ],
+  [
+    "Queen, King",
+    "The artist reimagined an existing character with playful features, combining shapes, colors and loose brushstrokes."
+  ],
+  [
+    "King’s Head",
+    "A pair of antennae stretching above the head brings a character first imagined in a drawing into three dimensions."
+  ],
+  [
+    "My Room",
+    "Small wooden shapes become the walls, floor and furniture of a model room. The artist arranged them to create a space of their own."
+  ],
+  [
+    "Flayed Pinocchio Tissue Holder",
+    "Vivid red and a rough surface give the familiar fairy-tale character Pinocchio an unsettling new appearance."
+  ],
+  [
+    "A Mosquito and Me Ascending on a Gyro Drop",
+    "The artist imagined a scene with a Gyro Drop ride, a mosquito and themselves. Sweeping lines, geometric shapes and bright colors suggest rapid movement."
+  ],
+  [
+    "Things I Like",
+    "The artist combined features of a favorite animal with a human face. A reshaped face and uneven surface turn those favorite things into a character in sculpture."
+  ]
+];
+  const names = {
+  "김현우": "Kim Hyeon-woo",
+  "김단우": "Kim Dan-woo",
+  "이아인": "Lee A-in",
+  "남연서": "Nam Yeon-seo",
+  "함선아": "Ham Seon-a",
+  "민유하": "Min Yu-ha",
+  "유채윤": "Yu Chae-yun",
+  "조아인": "Jo A-in",
+  "노서우": "No Seo-woo",
+  "최유현": "Choi Yu-hyeon",
+  "천지윤": "Cheon Ji-yun",
+  "임혜린": "Im Hye-rin",
+  "김온후": "Kim On-hu",
+  "손은영": "Son Eun-yeong",
+  "고주찬": "Go Ju-chan",
+  "조성하": "Jo Seong-ha",
+  "조서영": "Jo Seo-yeong",
+  "김지유": "Kim Ji-yu",
+  "서준배": "Seo Jun-bae",
+  "임혜은": "Im Hye-eun",
+  "전하리": "Jeon Ha-ri",
+  "임정훈": "Im Jeong-hun",
+  "민지훈": "Min Ji-hun",
+  "박소율": "Park So-yul",
+  "손효은": "Son Hyo-eun",
+  "서여은": "Seo Yeo-eun",
+  "이민준": "Lee Min-jun",
+  "정지웅": "Jeong Ji-ung",
+  "민희수": "Min Hui-su",
+  "박태훈": "Park Tae-hun",
+  "안단태": "An Dan-tae"
+};
+  const groups = {[A]:"Three-dimensional works",[B]:"Two-dimensional works",[C]:"Acrylic panel works",[P]:"Fragment Project"};
+  document.documentElement.lang = "en";
+  EXHIBITION.title = "Ta-da! A Higgledy-Piggledy World, What Did We See?";
+  EXHIBITION.place = "2026 Dream Studio Nowon · Gyeongchun Line Forest Trail Gallery · Nov 13–29, 2026";
+  document.title = EXHIBITION.title + " · Digital Exhibition Guide";
+  STUDIOS.forEach((studio, i) => {
+    [studio.name, studio.artist, studio.intro] = studios[i];
+  });
+  WORKS.forEach((work, i) => {
+    [work.title, work.desc] = works[i];
+    work.artist = work.artist.split(", ").map(name => names[name] || name).join(", ");
+    work.g = groups[work.g] || "";
+  });
+}
+
 const app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let activeAudio = null;
@@ -190,9 +457,9 @@ const NUMC = [
 ];
 function home(){
   document.body.classList.add("home");
-  app.innerHTML = `<button class="eng-preview" type="button" lang="en" aria-label="English" disabled>Eng</button><p class="mut">디지털 도슨트</p><h1>${esc(EXHIBITION.title)}</h1>
+  app.innerHTML = `<a class="eng-preview" href="${english ? './' : '?lang=en'}" lang="${english ? 'ko' : 'en'}" aria-label="${label("English", "한국어")}">${label("Eng", "한국어")}</a><p class="mut">${label("디지털 도슨트", "Digital Exhibition Guide")}</p><h1>${esc(EXHIBITION.title)}</h1>
   <p class="mut">${esc(EXHIBITION.place)}</p>
-  <p>아래 목록에서 작품을 선택하세요.</p>
+  <p>${label("아래 목록에서 작품을 선택하세요.", "Choose an artwork from the list below.")}</p>
   ${STUDIOS.map((s,i)=>`<a class="card" href="#${s.id}"><b><span class="studio-star" style="background-position:${["-217.5px -174px","-325px -181px","-332px -228.5px","-212px -228.5px"][i]}" aria-hidden="true"></span>${esc(s.name)}</b><span class="mut">${esc(s.artist)}</span></a>`).join("")}`;
 }
 
