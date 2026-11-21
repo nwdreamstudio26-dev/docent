@@ -634,6 +634,13 @@ window.addEventListener("hashchange", route);
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 route();
 queueCoverOpacity();
+if(document.body.classList.contains("home")){
+  requestAnimationFrame(() => {
+    if(document.body.classList.contains("home") && window.scrollY === 0){
+      app.scrollIntoView({behavior:reducedMotion.matches ? "instant" : "smooth", block:"start"});
+    }
+  });
+}
 </script>
 </body>
 </html>
