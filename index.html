@@ -18,8 +18,10 @@ main{max-width:640px;margin:0 auto;padding:20px 18px 48px}
 h1{font-size:1.45rem;line-height:1.35;margin:.2rem 0 .3rem}
 h2{font-size:1.25rem;line-height:1.4;margin:.4rem 0}
 .mut{color:var(--mut);font-size:.9rem}
+.ai-credit,.site-credit{display:flex;align-items:center;gap:5px;font-size:clamp(9px,3.25vw,11px);line-height:1.4;white-space:nowrap}
 .ai-credit{margin:0 0 12px}
-.site-credit{margin:24px 0 0;text-align:center;padding:8px 12px;background:var(--card);border:1px solid var(--line);border-radius:10px}
+.site-credit{margin:24px 0 0;justify-content:center}
+.ai-credit img,.site-credit img{width:14px;height:14px;flex:none;object-fit:contain}
 a{color:var(--ac)}
 .card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0}
 .card b{display:block;font-size:1.05rem}
@@ -500,7 +502,7 @@ function work(w){
   app.innerHTML = `<p><a href="#${STUDIOS[w.s-1].id}">← ${esc(STUDIOS[w.s-1].name)}</a></p>
   <h2>${esc(w.title)}</h2><p class="mut">${esc(w.artist)}${w.g?" · "+esc(w.g):""}</p>
 ${english ? "" : `  <div class="btns"><button class="pri" id="play" data-studio="${w.s}" aria-pressed="false">▶ 음성 재생</button></div>
-  <p class="mut ai-credit">이 음성 안내는 AI 합성 음성으로 제작되었습니다.</p>
+  <p class="mut ai-credit">이 음성 안내는 AI 합성 음성으로 제작되었습니다.<img src="https://www.google.com/s2/favicons?domain=typecast.ai&amp;sz=64" alt="타입캐스트" width="14" height="14"></p>
   <p class="mut" id="audio-status" role="status"></p>`}
   <div class="desc">${esc(w.desc||label("작품 설명을 준비 중입니다.", "Artwork description coming soon."))}</div>
   <nav class="btns" aria-label="${label("작품 이동", "Artwork navigation")}">${prev?`<a class="pbtn" href="#${prev.id}">${label("← 이전 작품", "← Previous artwork")}${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${nextStudio?`<a class="pbtn" href="#${nextStudio.id}">${label("다음 스튜디오 소개 →", "Next studio →")}<small>${esc(nextStudio.name)}</small></a>`:next?`<a class="pbtn" href="#${next.id}">${label("다음 작품 →", "Next artwork →")}</a>`:""}</nav>`;
@@ -546,7 +548,7 @@ ${english ? "" : `  <div class="btns"><button class="pri" id="play" data-studio=
 }
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
-  app.innerHTML = `<p><a class="back back-home" href="#">${label("← 메인화면", "← Home")}</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns">${english ? "" : `<button class="pri" id="studio-play" data-studio="${n}" aria-pressed="false">▶ 도슨트 음성 재생</button>`}<button id="jump-to-works" type="button">${label("↓ 작품 바로가기", "↓ Jump to artworks")}</button></div>${english ? "" : `<p class="mut ai-credit">이 음성 안내는 AI 합성 음성으로 제작되었습니다.</p><p id="studio-audio-status" class="mut" role="status"></p>`}<div class="desc">${esc(s.intro)}</div><h2 id="work-list-heading" tabindex="-1">${label("작품 목록", "Artworks")}</h2>`
+  app.innerHTML = `<p><a class="back back-home" href="#">${label("← 메인화면", "← Home")}</a></p><h2>${esc(s.name)}</h2><p class="mut">${esc(s.artist)}</p><div class="btns">${english ? "" : `<button class="pri" id="studio-play" data-studio="${n}" aria-pressed="false">▶ 도슨트 음성 재생</button>`}<button id="jump-to-works" type="button">${label("↓ 작품 바로가기", "↓ Jump to artworks")}</button></div>${english ? "" : `<p class="mut ai-credit">이 음성 안내는 AI 합성 음성으로 제작되었습니다.<img src="https://www.google.com/s2/favicons?domain=typecast.ai&amp;sz=64" alt="타입캐스트" width="14" height="14"></p><p id="studio-audio-status" class="mut" role="status"></p>`}<div class="desc">${esc(s.intro)}</div><h2 id="work-list-heading" tabindex="-1">${label("작품 목록", "Artworks")}</h2>`
   + WORKS.filter(w=>w.s===n).map(w=>{const h = w.g&&w.g!==label("조각 프로젝트", "Fragment Project")&&w.g!==g ? `<p class="mut">${esc(g=w.g)}</p>` : ""; return h+`<a class="card" href="#${w.id}"><b>${esc(w.title)}</b><span class="mut">${esc(w.artist)}</span></a>`;}).join("");
   document.getElementById("jump-to-works").onclick = () => {
     const heading = document.getElementById("work-list-heading");
@@ -623,7 +625,7 @@ function route(event){
   if(h !== "qr" || english){
     const footer = document.createElement("footer");
     footer.className = "mut site-credit";
-    footer.textContent = label("이 디지털 도슨트는 생성형 AI를 활용해 제작했습니다.", "Generative AI was used to create this digital exhibition guide.");
+    footer.innerHTML = `<span>${label("이 디지털 도슨트는 생성형 AI를 활용해 제작했습니다.", "Generative AI helped build this guide.")}</span><img src="https://www.google.com/s2/favicons?domain=chatgpt.com&amp;sz=64" alt="ChatGPT" width="14" height="14"><img src="https://www.google.com/s2/favicons?domain=claude.ai&amp;sz=64" alt="Claude" width="14" height="14">`;
     app.append(footer);
   }
   const previousId = event ? new URL(event.oldURL).hash.slice(1) : "";
