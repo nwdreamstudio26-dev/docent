@@ -173,6 +173,23 @@ w48:"자신이 좋아하는 동물의 특징을 사람의 얼굴과 합쳐 상�
 };
 WORKS.forEach(w=>{ if(D[w.id]) w.desc = D[w.id]; });
 WORKS.forEach(w=>{ w.audio = `docent-${w.id}.mp3`; });
+
+// Apply the exhibition order after assigning stable artwork IDs and audio paths.
+const studioWorkOrder = {
+  2: ["w17", "w16", "w15", "w14", "w13", "w12", "w11", "w10", "w9"],
+  3: ["w26", "w21", "w27", "w28", "w23", "w24", "w25", "w33", "w34", "w29", "w35", "w30", "w36", "w32", "w31", "w18", "w19", "w22", "w20"],
+  4: ["w38", "w47", "w42", "w37", "w43", "w41", "w45", "w44", "w39", "w48", "w40", "w46"],
+};
+WORKS.sort((a, b) => {
+  if (a.s !== b.s) return a.s - b.s;
+  const order = studioWorkOrder[a.s];
+  if (!order) return 0;
+  const position = work => {
+    const index = order.indexOf(work.id);
+    return index === -1 ? order.length : index;
+  };
+  return position(a) - position(b);
+});
 /* ============================== */
 
 const english = new URLSearchParams(location.search).get("lang") === "en";
