@@ -453,7 +453,7 @@ if(english){
     [studio.name, studio.artist, studio.intro] = studios[i];
   });
   WORKS.forEach((work, i) => {
-    [work.title, work.desc] = works[i];
+    [work.title, work.desc] = works[Number(work.id.slice(1)) - 1];
     work.artist = work.artist.split(", ").map(name => names[name] || name).join(", ");
     work.g = groups[work.g] || "";
   });
