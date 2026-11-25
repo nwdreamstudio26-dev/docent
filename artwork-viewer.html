@@ -35,12 +35,24 @@ p{margin:14px 0 0;font-size:12px;letter-spacing:.2em;color:#9c9a94}header i{disp
 .pager{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center}
 .pager[hidden]{display:none}
 @media (max-height:360px){img{max-height:45dvh}header{margin-top:10px}}
+
+.photo-stage{display:contents}
+.photo-stage.rain-light{position:relative;isolation:isolate;display:block;width:min(90vw, 820px, max(120px, calc(105dvh - 155px)))}
+.rain-light::before{content:"";position:absolute;z-index:-1;inset:1%;border-radius:3px;opacity:0;box-shadow:-14px 0 40px rgb(32 133 231 / 44%),14px 0 44px rgb(80 190 255 / 38%),0 9px 32px rgb(22 93 187 / 48%),0 0 11px rgb(173 225 255 / 55%);pointer-events:none}
+.rain-light:has(img.on)::before{animation:rain-backlight 1.35s ease-out forwards}
+.rain-light img{width:100%;max-width:none;max-height:none;clip-path:none;filter:none;opacity:0}
+.rain-light img.on{animation:rain-reveal 1.25s .15s ease-out forwards}
+.rain-light + header.on .c{animation-delay:calc(1.1s + var(--d))}
+.rain-light + header.on i{animation-delay:2.1s}
+@keyframes rain-backlight{to{opacity:1}}
+@keyframes rain-reveal{to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.rain-light:has(img.on)::before,.rain-light img.on{animation:none;opacity:1}}
 </style>
 </head>
 <body>
 <main>
-  <img id="artwork" alt="">
   <p id="image-status" role="status" hidden></p>
+  <div class="photo-stage"><img id="artwork" alt=""></div>
   <header id="caption"><h1></h1><i aria-hidden="true"></i><p></p></header>
 </main>
 <a class="back" id="back" href="./">← 작품 설명</a>
@@ -55,7 +67,7 @@ const photoCrops = {
   w23: [108, 154, 535, 563], // 바다 케이크
   w24: [139, 166, 529, 550], // 숲 속
   w25: [818, 178, 517, 535], // 눈사람만의 노을
-  w26: [95, 185, 550, 520], // 비 오는 날
+  w26: [116, 205, 505, 481], // 비 오는 날
   w27: [109, 173, 537, 537], // 냉동 바다 창고
   w28: [808, 151, 580, 580], // 소리
 };
@@ -79,6 +91,7 @@ if (!Array.isArray(photos)) {
   document.documentElement.lang = english ? 'en' : 'ko';
   document.title = title;
   img.alt = title;
+  if (workId === 'w26') img.parentElement.classList.add('rain-light');
   back.href = './' + (english ? '?lang=en' : '') + '#' + workId;
   back.textContent = english ? '← Artwork description' : '← 작품 설명';
   setCaption(caption.querySelector('h1'), title, .16, 0);
