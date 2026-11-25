@@ -495,6 +495,15 @@ function introduction(){
   <p>French artist Robert Filliou said, "<span lang="fr">l'art est ce qui rend la vie plus intéressante que l'art.</span>" (Art is what makes life more interesting than art.) The higgledy-piggledy world that the children and artists viewed with interest through art at Dream Studio now unfolds in this exhibition. Ta-da!</p>`;
 }
 
+const artworkViewerIds = new Set(["w2","w3","w4","w5","w6","w7","w8","w9","w10","w12","w13","w14","w15","w16","w17","w18","w19","w20","w21","w22","w23","w24","w25","w26","w27","w28","w37","w38","w39","w40","w41","w42","w43","w44","w45","w46","w47","w48"]);
+
+function artworkViewerHref(work){
+  if (work.id === "w11") return "meonjakgwi.html" + (english ? "?lang=en" : "");
+  const params = new URLSearchParams({id:work.id,title:work.title,artist:work.artist});
+  if (english) params.set("lang", "en");
+  return "artwork-viewer.html?" + params;
+}
+
 function work(w){
   const i = WORKS.indexOf(w);
   const prev = WORKS[i-1], next = WORKS[i+1];
@@ -505,7 +514,7 @@ ${english ? "" : `  <div class="btns"><button class="pri" id="play" data-studio=
   <p class="mut ai-credit">이 음성 안내는 AI 합성 음성으로 제작되었습니다.<img src="https://www.google.com/s2/favicons?domain=typecast.ai&amp;sz=64" alt="타입캐스트" width="14" height="14"></p>
   <p class="mut" id="audio-status" role="status"></p>`}
   <div class="desc">${esc(w.desc||label("작품 설명을 준비 중입니다.", "Artwork description coming soon."))}</div>
-  ${w.id === "w11" ? `<div class="btns"><a class="pbtn" href="meonjakgwi.html${english ? "?lang=en" : ""}">${label("작품 보기", "View artwork")}</a></div>` : ""}
+  ${w.id === "w11" || artworkViewerIds.has(w.id) ? `<div class="btns"><a class="pbtn" href="${esc(artworkViewerHref(w))}">${label("작품 보기", "View artwork")}</a></div>` : ""}
   <nav class="btns" aria-label="${label("작품 이동", "Artwork navigation")}">${prev?`<a class="pbtn" href="#${prev.id}">${label("← 이전 작품", "← Previous artwork")}${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${nextStudio?`<a class="pbtn" href="#${nextStudio.id}">${label("다음 스튜디오 소개 →", "Next studio →")}<small>${esc(nextStudio.name)}</small></a>`:next?`<a class="pbtn" href="#${next.id}">${label("다음 작품 →", "Next artwork →")}</a>`:""}</nav>`;
   if(english) return;
   const button = document.getElementById("play");

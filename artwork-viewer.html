@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>작품 보기</title>
+<style>
+:root{--bg:#000;--fg:#e9e6df;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--fg:#e9e6df}}
+:root[data-theme="dark"]{--bg:#000;--fg:#e9e6df}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;overflow:hidden}
+main{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+img{display:block;width:auto;height:auto;max-width:94vw;max-height:calc(100dvh - 190px);filter:brightness(0);clip-path:inset(46% 49% 46% 49%)}
+img.on{animation:light 3.2s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes light{
+ 0%{filter:brightness(0);clip-path:inset(46% 49% 46% 49%)}
+ 8%{filter:brightness(.45);clip-path:inset(46% 49% 46% 49%)}
+ 12%{filter:brightness(.1);clip-path:inset(46% 49% 46% 49%)}
+ 22%{filter:brightness(.6);clip-path:inset(44% 30% 44% 30%)}
+ 70%{filter:brightness(1);clip-path:inset(0 0 0 0)}
+ 100%{filter:brightness(1);clip-path:inset(0 0 0 0)}}
+header{margin-top:30px;text-align:center;min-height:84px}
+.c{display:inline-block;opacity:0;white-space:pre}
+header.on .c{animation:wr .8s cubic-bezier(.2,.7,.2,1) forwards;animation-delay:calc(3.24s + var(--d))}
+header.on i{animation:ln .9s ease forwards;animation-delay:4.44s}
+@keyframes wr{from{opacity:0;transform:translateY(.5em);filter:blur(6px)}to{opacity:1;transform:none;filter:blur(0)}}
+@keyframes ln{to{transform:scaleX(1)}}
+h1{font-size:24px;font-weight:300;margin:0;letter-spacing:.12em}
+p{margin:14px 0 0;font-size:12px;letter-spacing:.2em;color:#9c9a94}header i{display:block;width:36px;height:1px;background:#6b6a66;margin:14px auto 0;transform:scaleX(0);transform-origin:center}
+button{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 14px);font:inherit;font-size:12px;color:var(--fg);opacity:.55;background:none;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 12px;cursor:pointer}
+@media (prefers-reduced-motion:reduce){img,img.on{animation:none;filter:none;clip-path:none}.c{opacity:1!important;animation:none!important}header i{transform:none}}
+.back{position:fixed;left:16px;top:calc(env(safe-area-inset-top,0px) + 14px);font-size:12px;color:var(--fg);text-decoration:none;padding:6px 0}
+.pager{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center}
+.pager[hidden]{display:none}
+.pager button{position:static}
+@media (max-height:360px){img{max-height:45dvh}header{margin-top:10px}}
+</style>
+</head>
+<body>
+<main>
+  <img id="artwork" alt="">
+  <header id="caption"><h1></h1><i aria-hidden="true"></i><p></p></header>
+</main>
+<a class="back" id="back" href="./">← 작품 설명</a>
+<button id="replay" type="button">다시 켜기</button>
+<nav class="pager" id="pager" hidden>
+  <button id="previous" type="button">←</button><output id="position"></output><button id="next" type="button">→</button>
+</nav>
+<script>
+const photosByWork = {"w2":["art-w2.jpg"],"w3":["art-w3.jpg"],"w5":["art-w5.jpg","art-w5-2.jpg"],"w6":["art-w6.jpg"],"w7":["art-w7.jpg","art-w7-2.jpg"],"w8":["art-w8.jpg"],"w9":["art-w9.jpg"],"w10":["art-w10.jpg"],"w12":["art-w12.jpg"],"w13":["art-w13.jpg"],"w14":["art-w14.jpg"],"w15":["art-w15.jpg"],"w16":["art-w16.jpg"],"w17":["art-w17.jpg"],"w18":["art-w18.jpg"],"w19":["art-w19.jpg"],"w20":["art-w20.jpg"],"w21":["art-w21.jpg"],"w22":["art-w22.jpg"],"w23":["art-w22.jpg"],"w24":["art-w24.jpg"],"w25":["art-w24.jpg"],"w26":["art-w21.jpg"],"w27":["art-w27.jpg"],"w28":["art-w27.jpg"],"w37":["art-w37.jpg"],"w38":["art-w38.jpg"],"w39":["art-w39.jpg"],"w40":["art-w40.jpg"],"w41":["art-w41.jpg"],"w42":["art-w42.jpg"],"w43":["art-w41.jpg"],"w44":["art-w44.jpg"],"w45":["art-w45.jpg"],"w46":["art-w46.jpg"],"w47":["art-w47.jpg"],"w48":["art-w48.jpg","art-w48-2.jpg"],"w4":["art-w4.jpg","art-w4-2.jpg"]};
+const query = new URLSearchParams(location.search);
+const workId = query.get('id');
+const photos = photosByWork[workId];
+const english = query.get('lang') === 'en';
+const img = document.getElementById('artwork');
+const caption = document.getElementById('caption');
+const back = document.getElementById('back');
+const replay = document.getElementById('replay');
+const title = query.get('title') || (english ? 'View artwork' : '작품 보기');
+const artist = query.get('artist') || '';
+let current = 0;
+let playback = 0;
+
+if (!Array.isArray(photos)) {
+  location.replace('./' + (english ? '?lang=en' : ''));
+} else {
+  document.documentElement.lang = english ? 'en' : 'ko';
+  document.title = title;
+  img.alt = title;
+  back.href = './' + (english ? '?lang=en' : '') + '#' + workId;
+  back.textContent = english ? '← Artwork description' : '← 작품 설명';
+  replay.textContent = english ? 'Replay' : '다시 켜기';
+  setCaption(caption.querySelector('h1'), title, .16, 0);
+  setCaption(caption.querySelector('p'), artist, .07, 1.5);
+
+  const pager = document.getElementById('pager');
+  const previous = document.getElementById('previous');
+  const next = document.getElementById('next');
+  pager.hidden = photos.length < 2;
+  pager.setAttribute('aria-label', english ? 'Artwork photos' : '작품 사진');
+  previous.setAttribute('aria-label', english ? 'Previous photo' : '이전 사진');
+  next.setAttribute('aria-label', english ? 'Next photo' : '다음 사진');
+  previous.onclick = () => show((current + photos.length - 1) % photos.length);
+  next.onclick = () => show((current + 1) % photos.length);
+  replay.onclick = () => show(current);
+  show(0);
+}
+
+function setCaption(element, text, step, start) {
+  element.setAttribute('aria-label', text);
+  [...text].forEach((character, index) => {
+    const span = document.createElement('span');
+    span.className = 'c';
+    span.setAttribute('aria-hidden', 'true');
+    span.style.setProperty('--d', (start + index * step).toFixed(2) + 's');
+    span.textContent = character;
+    element.append(span);
+  });
+}
+
+async function show(index) {
+  current = index;
+  const token = ++playback;
+  img.classList.remove('on');
+  caption.classList.remove('on');
+  document.getElementById('position').textContent = (index + 1) + ' / ' + photos.length;
+  const filename = photos[index];
+  if (img.getAttribute('src') !== filename) img.src = filename;
+  try { await img.decode(); }
+  catch {
+    if (token === playback) replay.textContent = english ? 'Try again' : '다시 시도';
+    return;
+  }
+  if (token !== playback) return;
+  replay.textContent = english ? 'Replay' : '다시 켜기';
+  void img.offsetWidth;
+  img.classList.add('on');
+  caption.classList.add('on');
+}
+</script>
+</body>
+</html>
