@@ -57,9 +57,10 @@ html.rain-gallery,html.rain-gallery body{background:#c4c9cd}
 @keyframes gallery-art{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.rain-gallery main:has(img.on)::before,.photo-stage:has(img.on){animation:none;opacity:1}}
 
-.photo-stage{touch-action:pinch-zoom}
+.photo-stage{touch-action:pinch-zoom;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.photo-stage img{-webkit-touch-callout:none;-webkit-user-drag:none;pointer-events:none}
 .photo-stage img:focus-visible{outline:2px solid #425a72;outline-offset:5px}
-@media (hover:hover) and (pointer:fine){.photo-stage img.on{cursor:zoom-in}}
+@media (hover:hover) and (pointer:fine){.photo-stage:has(img.on){cursor:zoom-in}}
 .artwork-lens{position:fixed;inset:0 auto auto 0;z-index:3;width:clamp(118px,34vw,180px);aspect-ratio:1;overflow:hidden;border-radius:50%;background:#d6dce0;box-shadow:0 0 0 2px rgb(255 255 255 / 94%),0 5px 18px rgb(20 32 42 / 44%);pointer-events:none}
 .artwork-lens-detail{position:absolute;top:0;left:0;background-size:100% 100%;background-repeat:no-repeat}
 </style>
@@ -206,6 +207,9 @@ async function show(index) {
   lens.append(detail);
   document.body.append(lens);
   artwork.tabIndex = 0;
+  artwork.draggable = false;
+  stage.addEventListener('contextmenu', event => event.preventDefault());
+  stage.addEventListener('dragstart', event => event.preventDefault());
 
   const zoom = 2.6;
   let point;
