@@ -48,6 +48,16 @@ button{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 14px);f
 </nav>
 <script>
 const photosByWork = {"w2":["art-w2.jpg"],"w3":["art-w3.jpg"],"w5":["art-w5.jpg","art-w5-2.jpg"],"w6":["art-w6.jpg"],"w7":["art-w7.jpg","art-w7-2.jpg"],"w8":["art-w8.jpg"],"w9":["art-w9.jpg"],"w10":["art-w10.jpg"],"w12":["art-w12.jpg"],"w13":["art-w13.jpg"],"w14":["art-w14.jpg"],"w15":["art-w15.jpg"],"w16":["art-w16.jpg"],"w17":["art-w17.jpg"],"w18":["art-w18.jpg"],"w19":["art-w19.jpg"],"w20":["art-w20.jpg"],"w21":["art-w21.jpg"],"w22":["art-w22.jpg"],"w23":["art-w22.jpg"],"w24":["art-w24.jpg"],"w25":["art-w24.jpg"],"w26":["art-w21.jpg"],"w27":["art-w27.jpg"],"w28":["art-w27.jpg"],"w37":["art-w37.jpg"],"w38":["art-w38.jpg"],"w39":["art-w39.jpg"],"w40":["art-w40.jpg"],"w41":["art-w41.jpg"],"w42":["art-w42.jpg"],"w43":["art-w41.jpg"],"w44":["art-w44.jpg"],"w45":["art-w45.jpg"],"w46":["art-w46.jpg"],"w47":["art-w47.jpg"],"w48":["art-w48.jpg","art-w48-2.jpg"],"w4":["art-w4.jpg","art-w4-2.jpg"]};
+const photoCrops = {
+  w21: [808, 163, 558, 550], // 알 수 없는 사람에게 드려요
+  w22: [800, 160, 550, 560], // 숨어있는 감정들
+  w23: [108, 154, 535, 563], // 바다 케이크
+  w24: [139, 166, 529, 550], // 숲 속
+  w25: [818, 178, 517, 535], // 눈사람만의 노을
+  w26: [95, 185, 550, 520], // 비 오는 날
+  w27: [109, 173, 537, 537], // 냉동 바다 창고
+  w28: [808, 151, 580, 580], // 소리
+};
 const query = new URLSearchParams(location.search);
 const workId = query.get('id');
 const photos = photosByWork[workId];
@@ -106,8 +116,7 @@ async function show(index) {
   caption.classList.remove('on');
   document.getElementById('position').textContent = (index + 1) + ' / ' + photos.length;
   const filename = photos[index];
-  const crop = workId === 'w26' ? [95, 185, 550, 520]
-    : workId === 'w21' ? [808, 163, 558, 550] : null;
+  const crop = photoCrops[workId];
   const source = croppedPhoto || filename;
   if (img.getAttribute('src') !== source) img.src = source;
   try {
