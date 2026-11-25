@@ -49,6 +49,12 @@ html.rain-gallery,html.rain-gallery body{background:#c4c9cd}
 @keyframes gallery-spotlight{to{opacity:1}}
 @keyframes gallery-art{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.rain-gallery main:has(img.on)::before,.photo-stage:has(img.on){animation:none;opacity:1}}
+
+.photo-stage{touch-action:pinch-zoom}
+.photo-stage img:focus-visible{outline:2px solid #425a72;outline-offset:5px}
+@media (hover:hover) and (pointer:fine){.photo-stage img.on{cursor:zoom-in}}
+.artwork-lens{position:fixed;inset:0 auto auto 0;z-index:3;width:clamp(118px,34vw,180px);aspect-ratio:1;overflow:hidden;border-radius:50%;background:#d6dce0;box-shadow:0 0 0 2px rgb(255 255 255 / 94%),0 5px 18px rgb(20 32 42 / 44%);pointer-events:none}
+.artwork-lens-detail{position:absolute;top:0;left:0;background-size:100% 100%;background-repeat:no-repeat}
 </style>
 </head>
 <body>
@@ -73,6 +79,126 @@ a.decode().then(() => {
   a.classList.add('on');
   t.classList.add('on');
 }).catch(() => {});
+</script>
+
+<script>
+(() => {
+  const stage = document.querySelector('.photo-stage');
+  const artwork = stage.querySelector('img');
+  const lens = document.createElement('div');
+  const detail = document.createElement('div');
+  lens.className = 'artwork-lens';
+  detail.className = 'artwork-lens-detail';
+  lens.hidden = true;
+  lens.setAttribute('aria-hidden', 'true');
+  lens.append(detail);
+  document.body.append(lens);
+  artwork.tabIndex = 0;
+
+  const zoom = 2.6;
+  let point;
+  let frame = 0;
+  let activeTouch = null;
+  let source;
+  let radius;
+  const bound = (value, min, max) => Math.min(Math.max(value, min), max);
+
+  function hide() {
+    point = null;
+    lens.hidden = true;
+  }
+
+  function render() {
+    frame = 0;
+    if (!point || !artwork.classList.contains('on') || !artwork.naturalWidth) {
+      hide();
+      return;
+    }
+    const rect = artwork.getBoundingClientRect();
+    const near = point.x >= rect.left - 16 && point.x <= rect.right + 16
+      && point.y >= rect.top - 16 && point.y <= rect.bottom + 16;
+    if (point.mode === 'mouse' && !near) {
+      hide();
+      return;
+    }
+    const nextSource = artwork.currentSrc;
+    if (lens.hidden || source !== nextSource) {
+      source = nextSource;
+      detail.style.backgroundImage = 'url(' + JSON.stringify(source) + ')';
+      detail.style.clipPath = getComputedStyle(artwork).clipPath;
+      lens.hidden = false;
+      radius = lens.offsetWidth / 2;
+    }
+    const x = bound(point.x - rect.left, 0, rect.width);
+    const y = bound(point.y - rect.top, 0, rect.height);
+    const lift = radius + 26;
+    const aimY = point.mode === 'touch'
+      ? point.y + (point.y >= radius + lift + 8 ? -lift : lift)
+      : point.y;
+    const left = bound(point.x - radius, 8, innerWidth - 2 * radius - 8);
+    const top = bound(aimY - radius, 8, innerHeight - 2 * radius - 8);
+    detail.style.width = (rect.width * zoom) + 'px';
+    detail.style.height = (rect.height * zoom) + 'px';
+    detail.style.transform = 'translate(' + (radius - x * zoom) + 'px,' + (radius - y * zoom) + 'px)';
+    lens.style.transform = 'translate(' + left + 'px,' + top + 'px)';
+  }
+
+  function show(x, y, mode) {
+    point = {x, y, mode};
+    if (!frame) frame = requestAnimationFrame(render);
+  }
+
+  document.addEventListener('pointermove', event => {
+    if (event.pointerType === 'mouse') {
+      show(event.clientX, event.clientY, 'mouse');
+    } else if (event.pointerId === activeTouch) {
+      show(event.clientX, event.clientY, 'touch');
+    }
+  }, {passive:true});
+  document.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'mouse') return;
+    if (!stage.contains(event.target) || activeTouch !== null) {
+      activeTouch = null;
+      hide();
+      return;
+    }
+    activeTouch = event.pointerId;
+    show(event.clientX, event.clientY, 'touch');
+  }, {passive:true});
+  document.addEventListener('pointerup', event => {
+    if (event.pointerId === activeTouch) activeTouch = null;
+  });
+  document.addEventListener('pointercancel', event => {
+    if (event.pointerId !== activeTouch) return;
+    activeTouch = null;
+    hide();
+  });
+  document.documentElement.addEventListener('pointerleave', hide);
+  window.addEventListener('resize', hide);
+  artwork.addEventListener('blur', () => {
+    if (point?.mode === 'keyboard') hide();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') hide();
+  });
+  artwork.addEventListener('keydown', event => {
+    const rect = artwork.getBoundingClientRect();
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      if (point?.mode === 'keyboard') hide();
+      else show(rect.left + rect.width / 2, rect.top + rect.height / 2, 'keyboard');
+      return;
+    }
+    if (point?.mode !== 'keyboard') return;
+    const steps = {ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]};
+    const step = steps[event.key];
+    if (!step) return;
+    event.preventDefault();
+    show(bound(point.x + step[0], rect.left, rect.right),
+      bound(point.y + step[1], rect.top, rect.bottom), 'keyboard');
+  });
+  new MutationObserver(hide).observe(artwork, {attributes:true, attributeFilter:['src']});
+})();
 </script>
 </body>
 </html>
