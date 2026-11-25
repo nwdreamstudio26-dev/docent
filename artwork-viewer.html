@@ -27,22 +27,23 @@ header.on i{animation:ln .9s ease forwards;animation-delay:4.44s}
 @keyframes ln{to{transform:scaleX(1)}}
 h1{font-size:24px;font-weight:300;margin:0;letter-spacing:.12em}
 p{margin:14px 0 0;font-size:12px;letter-spacing:.2em;color:#9c9a94}header i{display:block;width:36px;height:1px;background:#6b6a66;margin:14px auto 0;transform:scaleX(0);transform-origin:center}
-button{position:fixed;right:16px;top:calc(env(safe-area-inset-top,0px) + 14px);font:inherit;font-size:12px;color:var(--fg);opacity:.55;background:none;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 12px;cursor:pointer}
+.pager button{font:inherit;font-size:12px;color:var(--fg);opacity:.55;background:none;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:6px 12px;cursor:pointer}
 @media (prefers-reduced-motion:reduce){img,img.on{animation:none;filter:none;clip-path:none}.c{opacity:1!important;animation:none!important}header i{transform:none}}
-.back{position:fixed;left:16px;top:calc(env(safe-area-inset-top,0px) + 14px);font-size:12px;color:var(--fg);text-decoration:none;padding:6px 0}
+.back{position:fixed;left:16px;top:calc(env(safe-area-inset-top,0px) + 14px);z-index:1;display:inline-flex;align-items:center;min-height:44px;box-sizing:border-box;padding:0 15px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:linear-gradient(140deg,rgba(255,255,255,.20),rgba(255,255,255,.08));-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 4px 16px rgba(0,0,0,.24);font-size:12px;color:var(--fg);text-decoration:none}
+.back:hover{background-color:rgba(255,255,255,.10)}
+.back:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
 .pager{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center}
 .pager[hidden]{display:none}
-.pager button{position:static}
 @media (max-height:360px){img{max-height:45dvh}header{margin-top:10px}}
 </style>
 </head>
 <body>
 <main>
   <img id="artwork" alt="">
+  <p id="image-status" role="status" hidden></p>
   <header id="caption"><h1></h1><i aria-hidden="true"></i><p></p></header>
 </main>
 <a class="back" id="back" href="./">← 작품 설명</a>
-<button id="replay" type="button">다시 켜기</button>
 <nav class="pager" id="pager" hidden>
   <button id="previous" type="button">←</button><output id="position"></output><button id="next" type="button">→</button>
 </nav>
@@ -65,7 +66,7 @@ const english = query.get('lang') === 'en';
 const img = document.getElementById('artwork');
 const caption = document.getElementById('caption');
 const back = document.getElementById('back');
-const replay = document.getElementById('replay');
+const imageStatus = document.getElementById('image-status');
 const title = query.get('title') || (english ? 'View artwork' : '작품 보기');
 const artist = query.get('artist') || '';
 let current = 0;
@@ -80,7 +81,6 @@ if (!Array.isArray(photos)) {
   img.alt = title;
   back.href = './' + (english ? '?lang=en' : '') + '#' + workId;
   back.textContent = english ? '← Artwork description' : '← 작품 설명';
-  replay.textContent = english ? 'Replay' : '다시 켜기';
   setCaption(caption.querySelector('h1'), title, .16, 0);
   setCaption(caption.querySelector('p'), artist, .07, 1.5);
 
@@ -93,7 +93,6 @@ if (!Array.isArray(photos)) {
   next.setAttribute('aria-label', english ? 'Next photo' : '다음 사진');
   previous.onclick = () => show((current + photos.length - 1) % photos.length);
   next.onclick = () => show((current + 1) % photos.length);
-  replay.onclick = () => show(current);
   show(0);
 }
 
@@ -114,6 +113,7 @@ async function show(index) {
   const token = ++playback;
   img.classList.remove('on');
   caption.classList.remove('on');
+  imageStatus.hidden = true;
   document.getElementById('position').textContent = (index + 1) + ' / ' + photos.length;
   const filename = photos[index];
   const crop = photoCrops[workId];
@@ -134,11 +134,13 @@ async function show(index) {
     }
   }
   catch {
-    if (token === playback) replay.textContent = english ? 'Try again' : '다시 시도';
+    if (token === playback) {
+      imageStatus.textContent = english ? 'The artwork photo could not be loaded.' : '작품 사진을 불러오지 못했습니다.';
+      imageStatus.hidden = false;
+    }
     return;
   }
   if (token !== playback) return;
-  replay.textContent = english ? 'Replay' : '다시 켜기';
   void img.offsetWidth;
   img.classList.add('on');
   caption.classList.add('on');
