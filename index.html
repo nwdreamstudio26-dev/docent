@@ -85,6 +85,12 @@ body.home::before{opacity:calc(1 - .45 * var(--cover-progress,0));inset:env(safe
 .inline-artwork img[hidden]{display:none}
 .inline-artwork-close{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);z-index:1;min-height:44px;background:#35373a;color:#fff;border:1px solid #a6a9ad;border-radius:999px;padding:0 16px;cursor:pointer}
 html:has(.inline-artwork[open]){overflow:hidden}
+
+.inline-artwork.embedded-artwork{padding:0;overflow:hidden}
+.embedded-artwork[open]{display:grid;grid-template-rows:auto minmax(0,1fr);place-items:stretch}
+.embedded-artwork-controls{display:flex;justify-content:flex-end;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))}
+.embedded-artwork-controls button{min-height:44px;padding:0 12px;background:#35373a;color:#fff;border:1px solid #a6a9ad;border-radius:999px}
+.embedded-artwork iframe{display:block;width:100%;height:100%;border:0}
 </style>
 </head>
 <body>
@@ -515,7 +521,7 @@ function work(w){
   const i = WORKS.indexOf(w);
   const prev = WORKS[i-1], next = WORKS[i+1];
   const nextStudio = next && next.s !== w.s ? STUDIOS[next.s-1] : null;
-  const inlineArtwork = w.id === "w2";
+  const inlineArtwork = w.id === "w2" || w.id === "w4";
   const artworkLink = inlineArtwork
     ? `<button type="button" class="pbtn" id="inline-artwork-open" aria-haspopup="dialog">${label("작품 보기", "View artwork")}</button>`
     : w.id === "w11" || artworkViewerIds.has(w.id)
@@ -529,7 +535,8 @@ ${english ? "" : `
   <p class="mut" id="audio-status" role="status"></p>`}
   <div class="desc">${esc(w.desc||label("작품 설명을 준비 중입니다.", "Artwork description coming soon."))}</div>
   <nav class="btns" aria-label="${label("작품 이동", "Artwork navigation")}">${prev?`<a class="pbtn" href="#${prev.id}">${label("← 이전 작품", "← Previous artwork")}${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${nextStudio?`<a class="pbtn" href="#${nextStudio.id}">${label("다음 스튜디오 소개 →", "Next studio →")}<small>${esc(nextStudio.name)}</small></a>`:next?`<a class="pbtn" href="#${next.id}">${label("다음 작품 →", "Next artwork →")}</a>`:""}</nav>`;
-  if(inlineArtwork){
+  if(w.id === "w4") attachArtworkViewer(w);
+  if(w.id === "w2"){
     const open = document.getElementById("inline-artwork-open");
     const dialog = document.createElement("dialog");
     dialog.className = "inline-artwork";
@@ -559,6 +566,11 @@ ${english ? "" : `
     state = value;
     button.textContent = value === "playing" ? "Ⅱ 일시정지" : value === "paused" ? "▶ 이어듣기" : "▶ 음성 재생";
     button.setAttribute("aria-pressed", value === "playing");
+    const photoAudio = document.getElementById("photo-audio");
+    if(photoAudio){
+      photoAudio.textContent = button.textContent;
+      photoAudio.setAttribute("aria-pressed", value === "playing");
+    }
   };
   const fail = () => { setState("idle"); status.textContent = "음성을 재생하지 못했습니다. 다시 눌러 주세요."; };
   let audio = null;
@@ -590,6 +602,48 @@ ${english ? "" : `
     setState("playing");
     speechSynthesis.speak(utterance);
   };
+}
+function attachArtworkViewer(work){
+  const opener = document.getElementById("inline-artwork-open");
+  const dialog = document.createElement("dialog");
+  dialog.className = "inline-artwork embedded-artwork";
+  dialog.setAttribute("aria-label", work.title);
+  dialog.innerHTML = `<div class="embedded-artwork-controls">
+    ${english ? "" : '<button type="button" id="photo-audio" aria-pressed="false">▶ 음성 재생</button>'}
+    <button type="button" id="photo-close" autofocus>${label("사진 닫기", "Close photo")}</button>
+  </div><iframe title="${esc(work.title)}"></iframe>`;
+  const frame = dialog.querySelector("iframe");
+  const photoAudio = dialog.querySelector("#photo-audio");
+  const close = () => history.back();
+  const onBack = () => {
+    if(dialog.open) dialog.close();
+  };
+  frame.onload = () => {
+    const back = frame.contentDocument?.getElementById("back");
+    if(back) back.style.display = "none";
+    frame.contentDocument?.addEventListener("keydown", event => {
+      if(event.key === "Escape" && dialog.open){
+        event.preventDefault();
+        close();
+      }
+    });
+  };
+  frame.src = artworkViewerHref(work);
+  app.append(dialog);
+  if(photoAudio){
+    photoAudio.onclick = () => document.getElementById("play").click();
+  }
+  opener.onclick = () => {
+    history.pushState({artworkPhoto: work.id}, "");
+    window.addEventListener("popstate", onBack, {once:true});
+    dialog.showModal();
+  };
+  dialog.querySelector("#photo-close").onclick = close;
+  dialog.oncancel = event => {
+    event.preventDefault();
+    close();
+  };
+  dialog.onclose = () => opener.focus({preventScroll:true});
 }
 function studio(s){
   const n = STUDIOS.indexOf(s)+1; let g = "";
