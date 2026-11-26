@@ -289,11 +289,7 @@ async function show(index) {
     const pager = document.getElementById('pager');
     const bottom = pager && !pager.hidden ? pager.getBoundingClientRect().top : innerHeight;
     const maxTop = Math.max(margin, bottom - size - margin);
-    const above = point.y - size - gap;
-    const below = point.y + gap;
-    const roomAbove = point.y - margin;
-    const roomBelow = bottom - point.y - margin;
-    const top = bound(roomAbove >= roomBelow ? above : below, margin, maxTop);
+    const top = bound(point.y - size - gap, margin, maxTop);
     const left = bound(point.x - radius, margin, Math.max(margin, innerWidth - size - margin));
     const width = rect.width * zoom;
     const height = rect.height * zoom;
