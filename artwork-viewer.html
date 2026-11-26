@@ -89,6 +89,41 @@ const photoCrops = {
   w27: [109, 173, 537, 537], // 냉동 바다 창고
   w28: [808, 151, 580, 580], // 소리
 };
+// Artwork bounds as percentages of each original photo, including secondary views.
+const photoBounds = {
+  'w2': [20, 9, 94, 98],
+  'w3': [28, 15, 92, 79],
+  'w4': [14, 35, 88, 70],
+  'w4-2': [37, 9, 66, 91],
+  'w5': [5, 17, 98, 99],
+  'w5-2': [18, 17, 86, 82],
+  'w6': [2, 11, 98, 90],
+  'w7': [11, 7, 95, 98],
+  'w7-2': [5, 21, 99, 78],
+  'w8': [20, 5, 82, 91],
+  'w9': [12, 27, 84, 70],
+  'w10': [13, 26, 93, 76],
+  'w12': [20, 18, 80, 79],
+  'w13': [15, 16, 86, 80],
+  'w14': [4, 5, 98, 92],
+  'w15': [8, 23, 92, 72],
+  'w16': [14, 17, 88, 75],
+  'w17': [15, 17, 91, 74],
+  'w18': [15, 5, 95, 94],
+  'w19': [24, 33, 78, 82],
+  'w20': [14, 5, 88, 91],
+  'w37': [10, 18, 91, 82],
+  'w38': [10, 17, 90, 81],
+  'w39': [8, 21, 97, 88],
+  'w40': [17, 18, 82, 83],
+  'w42': [10, 16, 90, 81],
+  'w44': [20, 12, 81, 82],
+  'w45': [4, 10, 97, 92],
+  'w46': [22, 23, 84, 82],
+  'w47': [10, 17, 91, 82],
+  'w48': [17, 24, 77, 85],
+  'w48-2': [22, 24, 80, 93],
+};
 const artworkOutlines = {
   w43: 'polygon(1.04% 0.70%, 98.76% 0.70%, 98.96% 98.95%, 0.83% 99.12%)',
   w41: 'polygon(1.05% 0.87%, 98.95% 0.87%, 98.95% 98.96%, 1.05% 98.96%)',
@@ -112,7 +147,7 @@ const title = query.get('title') || (english ? 'View artwork' : '작품 보기')
 const artist = query.get('artist') || '';
 let current = 0;
 let playback = 0;
-let croppedPhoto;
+const croppedPhotos = new Map();
 
 if (!Array.isArray(photos)) {
   location.replace('./' + (english ? '?lang=en' : ''));
@@ -153,6 +188,14 @@ function setCaption(element, text, step, start) {
   });
 }
 
+function getCropRectangle([left, top, right, bottom]) {
+  const x = Math.floor(img.naturalWidth * left / 100);
+  const y = Math.floor(img.naturalHeight * top / 100);
+  const width = Math.ceil(img.naturalWidth * right / 100) - x;
+  const height = Math.ceil(img.naturalHeight * bottom / 100) - y;
+  return [x, y, width, height];
+}
+
 async function show(index) {
   current = index;
   const token = ++playback;
@@ -162,13 +205,16 @@ async function show(index) {
   document.getElementById('position').textContent = (index + 1) + ' / ' + photos.length;
   const filename = photos[index];
   const crop = photoCrops[workId];
-  const source = croppedPhoto || filename;
+  const bounds = photoBounds[filename.slice(4, -4)];
+  const cachedPhoto = croppedPhotos.get(filename);
+  const source = cachedPhoto || filename;
   if (img.getAttribute('src') !== source) img.src = source;
   try {
     await img.decode();
     if (token !== playback) return;
-    if (crop && !croppedPhoto) {
-      const [x, y, width, height] = crop;
+    if ((crop || bounds) && !cachedPhoto) {
+      const [x, y, width, height] = crop || getCropRectangle(bounds);
+
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -176,7 +222,8 @@ async function show(index) {
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
       if (token !== playback) return;
       if (!blob) throw new Error('Artwork crop could not be encoded');
-      croppedPhoto = URL.createObjectURL(blob);
+      const croppedPhoto = URL.createObjectURL(blob);
+      croppedPhotos.set(filename, croppedPhoto);
       img.src = croppedPhoto;
       await img.decode();
     }
