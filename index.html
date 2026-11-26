@@ -144,6 +144,7 @@ html:has(.inline-artwork[open]){overflow:hidden}
   main .desc,.inline-artwork{background:#edf5fa}
   .inline-artwork::backdrop{-webkit-backdrop-filter:none;backdrop-filter:none}
 }
+.photo-unavailable{display:inline-flex;align-items:center;min-height:44px;padding:0 14px;color:#435361;font-size:.875rem}
 </style>
 </head>
 <body>
@@ -574,12 +575,10 @@ function work(w){
   const i = WORKS.indexOf(w);
   const prev = WORKS[i-1], next = WORKS[i+1];
   const nextStudio = next && next.s !== w.s ? STUDIOS[next.s-1] : null;
-  const inlineArtwork = w.id === "w2" || w.id === "w4";
-  const artworkLink = inlineArtwork
+  const hasArtworkPhoto = w.id === "w11" || artworkViewerIds.has(w.id);
+  const artworkLink = hasArtworkPhoto
     ? `<button type="button" class="pbtn" id="inline-artwork-open" aria-haspopup="dialog">${label("작품 보기", "View artwork")}</button>`
-    : w.id === "w11" || artworkViewerIds.has(w.id)
-    ? `<a class="pbtn" href="${esc(artworkViewerHref(w))}">${label("작품 보기", "View artwork")}</a>`
-    : "";
+    : `<span class="photo-unavailable">${label("사진 미제공", "Photo unavailable")}</span>`;
   app.innerHTML = `<p><a href="#${STUDIOS[w.s-1].id}">← ${esc(STUDIOS[w.s-1].name)}</a></p>
   <h2>${esc(w.title)}</h2><p class="mut">${esc(w.artist)}${w.g?" · "+esc(w.g):""}</p>
   ${!english || artworkLink ? `<div class="btns">${english ? "" : `<button class="pri" id="play" data-studio="${w.s}" aria-pressed="false">▶ 음성 재생</button>`}${artworkLink}</div>` : ""}
@@ -588,30 +587,8 @@ ${english ? "" : `
   <p class="mut" id="audio-status" role="status"></p>`}
   <div class="desc">${esc(w.desc||label("작품 설명을 준비 중입니다.", "Artwork description coming soon."))}</div>
   <nav class="btns" aria-label="${label("작품 이동", "Artwork navigation")}">${prev?`<a class="pbtn" href="#${prev.id}">${label("← 이전 작품", "← Previous artwork")}${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${nextStudio?`<a class="pbtn" href="#${nextStudio.id}">${label("다음 스튜디오 소개 →", "Next studio →")}<small>${esc(nextStudio.name)}</small></a>`:next?`<a class="pbtn" href="#${next.id}">${label("다음 작품 →", "Next artwork →")}</a>`:""}</nav>`;
-  if(w.id === "w2"){
-    const open = document.getElementById("inline-artwork-open");
-    const dialog = document.createElement("dialog");
-    dialog.className = "inline-artwork";
-    dialog.setAttribute("aria-label", w.title);
-    dialog.innerHTML = `<button type="button" class="inline-artwork-close" autofocus>${label("사진 닫기", "Close photo")}</button>
-      <img alt="${esc(w.title)}" draggable="false">
-      <p role="status" hidden>${label("작품 사진을 불러오지 못했습니다.", "The artwork photo could not be loaded.")}</p>`;
-    const photo = dialog.querySelector("img");
-    photo.onerror = () => {
-      photo.hidden = true;
-      dialog.querySelector("[role=status]").hidden = false;
-    };
-    dialog.oncontextmenu = event => event.preventDefault();
-    app.append(dialog);
-    open.onclick = () => {
-      if(!photo.hasAttribute("src")) photo.src = "art-w2.jpg";
-      dialog.showModal();
-    };
-    dialog.querySelector("button").onclick = () => dialog.close();
-    dialog.onclose = () => open.focus({preventScroll:true});
-  }
   if(english){
-    if(w.id === "w4") attachArtworkViewer(w, null);
+    if(hasArtworkPhoto) attachArtworkViewer(w, null);
     return;
   }
   const button = document.getElementById("play");
@@ -657,7 +634,7 @@ ${english ? "" : `
     setState("playing");
     speechSynthesis.speak(utterance);
   };
-  if(w.id === "w4") attachArtworkViewer(w, audio);
+  if(hasArtworkPhoto) attachArtworkViewer(w, audio);
 }
 function attachArtworkViewer(work, audio){
   const opener = document.getElementById("inline-artwork-open");
@@ -684,12 +661,17 @@ function attachArtworkViewer(work, audio){
   };
   frame.onload = () => {
     const viewer = frame.contentDocument;
-    if(!viewer?.getElementById("artwork")) return;
-    viewer.getElementById("back").hidden = true;
-    viewer.getElementById("previous").textContent = label("이전 사진", "Previous photo");
-    viewer.getElementById("next").textContent = label("다음 사진", "Next photo");
+    if(!viewer?.querySelector("main img")) return;
+    const back = viewer.querySelector(".back");
+    if(back) back.hidden = true;
+    const previous = viewer.getElementById("previous");
+    const next = viewer.getElementById("next");
+    if(previous && next){
+      previous.textContent = label("이전 사진", "Previous photo");
+      next.textContent = label("다음 사진", "Next photo");
+    }
     const style = viewer.createElement("style");
-    style.textContent = "html.rain-gallery,html.rain-gallery body{background:transparent}.rain-gallery main{background:radial-gradient(ellipse at 50% 30%,#ffffffa6, #e6f0f848 68%, #d5e4ef61)}.back[hidden]{display:none}.pager{width:max-content;max-width:calc(100% - 16px);gap:8px;color:#25313b}.pager button{min-height:44px;padding:0 12px;color:#25313b;background:linear-gradient(145deg,#fffdfbdb,#eef6fedb);border-color:#ffffffd9;box-shadow:inset 0 1px 0 #fff,0 3px 9px #283e5524;opacity:1}.photo-stage:not(.rain-light) img{max-height:min(65dvh, max(65px, calc(100dvh - 165px)))}";
+    style.textContent = "html,html body,html.rain-gallery,html.rain-gallery body{background:transparent;color:#25313b}html:not(.rain-gallery) header p{color:#45515a}.rain-gallery main{background:radial-gradient(ellipse at 50% 30%,#ffffffa6, #e6f0f848 68%, #d5e4ef61)}.back[hidden]{display:none}.pager{width:max-content;max-width:calc(100% - 16px);gap:8px;color:#25313b}.pager button{min-height:44px;padding:0 12px;color:#25313b;background:linear-gradient(145deg,#fffdfbdb,#eef6fedb);border-color:#ffffffd9;box-shadow:inset 0 1px 0 #fff,0 3px 9px #283e5524;opacity:1}.photo-stage:not(.rain-light) img{max-height:min(65dvh, max(65px, calc(100dvh - 165px)))}";
     viewer.head.append(style);
     viewer.addEventListener("keydown", event => {
       if(event.key === "Escape" && dialog.open){
