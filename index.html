@@ -87,10 +87,14 @@ body.home::before{opacity:calc(1 - .45 * var(--cover-progress,0));inset:env(safe
 html:has(.inline-artwork[open]){overflow:hidden}
 
 .inline-artwork.embedded-artwork{padding:0;overflow:hidden}
-.embedded-artwork[open]{display:grid;grid-template-rows:auto minmax(0,1fr);place-items:stretch}
+.embedded-artwork[open]{display:grid;grid-template-rows:auto auto auto minmax(0,1fr);place-items:stretch}
 .embedded-artwork-controls{display:flex;justify-content:flex-end;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 8px) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))}
 .embedded-artwork-controls button{min-height:44px;padding:0 12px;background:#35373a;color:#fff;border:1px solid #a6a9ad;border-radius:999px}
-.embedded-artwork iframe{display:block;width:100%;height:100%;border:0}
+.embedded-artwork iframe{display:block;grid-row:4;width:100%;height:100%;border:0}
+.embedded-artwork-progress{display:flex;align-items:center;gap:10px;padding:0 14px;font-size:13px;font-variant-numeric:tabular-nums}
+.embedded-artwork-progress input{flex:1;min-width:0;height:28px;margin:0;accent-color:#fff}
+.embedded-artwork-hint{grid-row:3;margin:0;padding:3px 12px 7px;color:#e0e0e0;text-align:center;font-size:12px}
+@media (pointer:fine){.embedded-artwork-hint{display:none}}
 </style>
 </head>
 <body>
@@ -535,7 +539,6 @@ ${english ? "" : `
   <p class="mut" id="audio-status" role="status"></p>`}
   <div class="desc">${esc(w.desc||label("작품 설명을 준비 중입니다.", "Artwork description coming soon."))}</div>
   <nav class="btns" aria-label="${label("작품 이동", "Artwork navigation")}">${prev?`<a class="pbtn" href="#${prev.id}">${label("← 이전 작품", "← Previous artwork")}${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${nextStudio?`<a class="pbtn" href="#${nextStudio.id}">${label("다음 스튜디오 소개 →", "Next studio →")}<small>${esc(nextStudio.name)}</small></a>`:next?`<a class="pbtn" href="#${next.id}">${label("다음 작품 →", "Next artwork →")}</a>`:""}</nav>`;
-  if(w.id === "w4") attachArtworkViewer(w);
   if(w.id === "w2"){
     const open = document.getElementById("inline-artwork-open");
     const dialog = document.createElement("dialog");
@@ -558,7 +561,10 @@ ${english ? "" : `
     dialog.querySelector("button").onclick = () => dialog.close();
     dialog.onclose = () => open.focus({preventScroll:true});
   }
-  if(english) return;
+  if(english){
+    if(w.id === "w4") attachArtworkViewer(w, null);
+    return;
+  }
   const button = document.getElementById("play");
   const status = document.getElementById("audio-status");
   let state = "idle";
@@ -602,8 +608,9 @@ ${english ? "" : `
     setState("playing");
     speechSynthesis.speak(utterance);
   };
+  if(w.id === "w4") attachArtworkViewer(w, audio);
 }
-function attachArtworkViewer(work){
+function attachArtworkViewer(work, audio){
   const opener = document.getElementById("inline-artwork-open");
   const dialog = document.createElement("dialog");
   dialog.className = "inline-artwork embedded-artwork";
@@ -611,17 +618,31 @@ function attachArtworkViewer(work){
   dialog.innerHTML = `<div class="embedded-artwork-controls">
     ${english ? "" : '<button type="button" id="photo-audio" aria-pressed="false">▶ 음성 재생</button>'}
     <button type="button" id="photo-close" autofocus>${label("사진 닫기", "Close photo")}</button>
-  </div><iframe title="${esc(work.title)}"></iframe>`;
+  </div>
+  ${audio ? '<div class="embedded-artwork-progress"><input id="photo-seek" type="range" min="0" max="1" value="0" step="0.1" aria-label="해설 재생 위치" disabled><span id="photo-time">0:00 / –:––</span></div>' : ""}
+  <p class="embedded-artwork-hint">${label("사진에 손가락을 대고 움직이면 확대됩니다.", "Touch and drag or hover over the photo to magnify it.")}</p>
+  <iframe title="${esc(work.title)}"></iframe>`;
   const frame = dialog.querySelector("iframe");
   const photoAudio = dialog.querySelector("#photo-audio");
-  const close = () => history.back();
+  let closing = false;
+  const close = () => {
+    if(closing) return;
+    closing = true;
+    history.back();
+  };
   const onBack = () => {
     if(dialog.open) dialog.close();
   };
   frame.onload = () => {
-    const back = frame.contentDocument?.getElementById("back");
-    if(back) back.style.display = "none";
-    frame.contentDocument?.addEventListener("keydown", event => {
+    const viewer = frame.contentDocument;
+    if(!viewer?.getElementById("artwork")) return;
+    viewer.getElementById("back").hidden = true;
+    viewer.getElementById("previous").textContent = label("이전 사진", "Previous photo");
+    viewer.getElementById("next").textContent = label("다음 사진", "Next photo");
+    const style = viewer.createElement("style");
+    style.textContent = ".back[hidden]{display:none}.pager{width:max-content;max-width:calc(100% - 16px);gap:8px;color:#25313b}.pager button{min-height:44px;padding:0 12px;color:#25313b;background:#f2f3f4;border-color:#6e7983;opacity:1}.photo-stage:not(.rain-light) img{max-height:min(65dvh, max(65px, calc(100dvh - 165px)))}";
+    viewer.head.append(style);
+    viewer.addEventListener("keydown", event => {
       if(event.key === "Escape" && dialog.open){
         event.preventDefault();
         close();
@@ -633,7 +654,29 @@ function attachArtworkViewer(work){
   if(photoAudio){
     photoAudio.onclick = () => document.getElementById("play").click();
   }
+  if(audio){
+    const seek = dialog.querySelector("#photo-seek");
+    const time = dialog.querySelector("#photo-time");
+    const formatTime = seconds => {
+      const whole = Math.floor(seconds);
+      return Math.floor(whole / 60) + ":" + String(whole % 60).padStart(2, "0");
+    };
+    const updateProgress = () => {
+      const duration = audio.duration;
+      const ready = Number.isFinite(duration) && duration > 0;
+      seek.disabled = !ready;
+      if(ready) seek.max = duration;
+      seek.value = audio.currentTime;
+      time.textContent = formatTime(audio.currentTime) + " / " + (ready ? formatTime(duration) : "–:––");
+      seek.setAttribute("aria-valuetext", time.textContent);
+    };
+    ["loadedmetadata", "durationchange", "timeupdate", "seeked", "ended"].forEach(event => audio.addEventListener(event, updateProgress));
+    seek.oninput = () => { audio.currentTime = Number(seek.value); };
+    audio.preload = "metadata";
+    updateProgress();
+  }
   opener.onclick = () => {
+    closing = false;
     history.pushState({artworkPhoto: work.id}, "");
     window.addEventListener("popstate", onBack, {once:true});
     dialog.showModal();
