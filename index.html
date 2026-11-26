@@ -78,6 +78,13 @@ body.home{isolation:isolate;background-color:#fbeb8b;background-color:color-mix(
 body.home::before{opacity:calc(1 - .45 * var(--cover-progress,0));inset:env(safe-area-inset-top,0px) 0 auto;margin-inline:auto;width:min(100%,80.07vh);width:min(100%,80.07svh);aspect-ratio:900/1124;border-radius:18px;background-color:transparent;background-size:100% 100%;transform:none}
 @media print{body::before{display:none}main{background:none}}
 .eng-preview{position:absolute;top:16px;right:18px;display:grid;place-items:center;min-width:44px;min-height:44px;padding:0 12px;border:1px solid #ffffffdb;border-radius:999px;background:#ffffffb5;color:#232d35;font:700 14px system-ui;box-shadow:0 2px 7px #34405c1f;text-decoration:none}
+
+.inline-artwork{position:fixed;inset:0;box-sizing:border-box;margin:0;width:100%;height:100%;height:100dvh;max-width:none;max-height:none;border:0;background:#171819;color:#fff;padding:calc(env(safe-area-inset-top,0px) + 70px) 12px calc(env(safe-area-inset-bottom,0px) + 12px);overflow:auto}
+.inline-artwork[open]{display:grid;place-items:center}
+.inline-artwork img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;-webkit-touch-callout:none;user-select:none;pointer-events:none}
+.inline-artwork img[hidden]{display:none}
+.inline-artwork-close{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);z-index:1;min-height:44px;background:#35373a;color:#fff;border:1px solid #a6a9ad;border-radius:999px;padding:0 16px;cursor:pointer}
+html:has(.inline-artwork[open]){overflow:hidden}
 </style>
 </head>
 <body>
@@ -508,7 +515,10 @@ function work(w){
   const i = WORKS.indexOf(w);
   const prev = WORKS[i-1], next = WORKS[i+1];
   const nextStudio = next && next.s !== w.s ? STUDIOS[next.s-1] : null;
-  const artworkLink = w.id === "w11" || artworkViewerIds.has(w.id)
+  const inlineArtwork = w.id === "w2";
+  const artworkLink = inlineArtwork
+    ? `<button type="button" class="pbtn" id="inline-artwork-open" aria-haspopup="dialog">${label("작품 보기", "View artwork")}</button>`
+    : w.id === "w11" || artworkViewerIds.has(w.id)
     ? `<a class="pbtn" href="${esc(artworkViewerHref(w))}">${label("작품 보기", "View artwork")}</a>`
     : "";
   app.innerHTML = `<p><a href="#${STUDIOS[w.s-1].id}">← ${esc(STUDIOS[w.s-1].name)}</a></p>
@@ -519,6 +529,28 @@ ${english ? "" : `
   <p class="mut" id="audio-status" role="status"></p>`}
   <div class="desc">${esc(w.desc||label("작품 설명을 준비 중입니다.", "Artwork description coming soon."))}</div>
   <nav class="btns" aria-label="${label("작품 이동", "Artwork navigation")}">${prev?`<a class="pbtn" href="#${prev.id}">${label("← 이전 작품", "← Previous artwork")}${prev.s!==w.s?`<small>${esc(STUDIOS[prev.s-1].name)}</small>`:""}</a>`:""}${nextStudio?`<a class="pbtn" href="#${nextStudio.id}">${label("다음 스튜디오 소개 →", "Next studio →")}<small>${esc(nextStudio.name)}</small></a>`:next?`<a class="pbtn" href="#${next.id}">${label("다음 작품 →", "Next artwork →")}</a>`:""}</nav>`;
+  if(inlineArtwork){
+    const open = document.getElementById("inline-artwork-open");
+    const dialog = document.createElement("dialog");
+    dialog.className = "inline-artwork";
+    dialog.setAttribute("aria-label", w.title);
+    dialog.innerHTML = `<button type="button" class="inline-artwork-close" autofocus>${label("사진 닫기", "Close photo")}</button>
+      <img alt="${esc(w.title)}" draggable="false">
+      <p role="status" hidden>${label("작품 사진을 불러오지 못했습니다.", "The artwork photo could not be loaded.")}</p>`;
+    const photo = dialog.querySelector("img");
+    photo.onerror = () => {
+      photo.hidden = true;
+      dialog.querySelector("[role=status]").hidden = false;
+    };
+    dialog.oncontextmenu = event => event.preventDefault();
+    app.append(dialog);
+    open.onclick = () => {
+      if(!photo.hasAttribute("src")) photo.src = "art-w2.jpg";
+      dialog.showModal();
+    };
+    dialog.querySelector("button").onclick = () => dialog.close();
+    dialog.onclose = () => open.focus({preventScroll:true});
+  }
   if(english) return;
   const button = document.getElementById("play");
   const status = document.getElementById("audio-status");
