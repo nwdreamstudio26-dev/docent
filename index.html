@@ -680,7 +680,9 @@ function attachArtworkViewer(work, audio){
       }
     });
   };
-  frame.src = artworkViewerHref(work);
+  const viewerUrl = new URL(artworkViewerHref(work), location.href);
+  viewerUrl.searchParams.set("v", "e4b79a5");
+  frame.src = viewerUrl.href;
   app.append(dialog);
   if(photoAudio){
     photoAudio.onclick = () => document.getElementById("play").click();
