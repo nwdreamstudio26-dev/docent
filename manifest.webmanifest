@@ -1,0 +1,24 @@
+{
+  "name": "짠! 뒤죽박죽 세계, 뭘 봤지? — 꿈의 스튜디오 도슨트",
+  "short_name": "꿈의 스튜디오",
+  "lang": "ko",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#152039",
+  "background_color": "#152039",
+  "icons": [
+    {
+      "src": "./docent-icon.svg",
+      "sizes": "any 192x192 512x512",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "./docent-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
